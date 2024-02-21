@@ -106,7 +106,7 @@ def PXIe_4322_Operations(gRPC_channel, PXIe_4322_Device, PXIe_4303_Device):
             MeasuredValue.append(9999.9)
             i=i+1
         MyTestResult=SelfTest_CF.Test_Result()
-        MyTestResult.CustomInit('PXIe-4322: check channels','Fail',1,MeasuredValue,CurrentOutputValue,Create_Test_Module_Description_String(PXIe_4322_Channels, CurrentOutputValue, PXIe_4303_Channels),str(datetime.datetime.now()))
+        MyTestResult.CustomInit('PXIe-4322: check channels','Fail',8,MeasuredValue,CurrentOutputValue,Create_Test_Module_Description_String(PXIe_4322_Channels, CurrentOutputValue, PXIe_4303_Channels),str(datetime.datetime.now()))
         
         raise_if_error_daqmx(
             daqmx_client.CreateAOVoltageChan(
@@ -142,7 +142,7 @@ def PXIe_4322_Operations(gRPC_channel, PXIe_4322_Device, PXIe_4303_Device):
             i=0
             for i in range(len(CurrentOutputValue)):
                 MyTestResult.Test_Numeric_Results[i]=average[i]
-                Test_Status=Test_Status and SelfTest_CF.Test_Numeric_Test(CurrentOutputValue[i],MyTestResult.Test_Numeric_Results[i],5)
+                Test_Status=Test_Status and SelfTest_CF.Test_Numeric_Test(CurrentOutputValue[i],MyTestResult.Test_Numeric_Results[i],1)
             if Test_Status==True:
                 MyTestResult.Test_PassFail_Status='Pass'
             else:

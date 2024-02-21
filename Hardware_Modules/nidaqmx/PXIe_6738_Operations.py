@@ -138,7 +138,7 @@ def PXIe_6738_Operations(gRPC_channel, PXIe_6738_Device, PXIe_4303_Device):
             i=0
             for i in range(len(CurrentOutputValue)):
                 MyTestResult.Test_Numeric_Results[i]=average[i]
-                Test_Status=Test_Status and SelfTest_CF.Test_Numeric_Test(CurrentOutputValue[i],MyTestResult.Test_Numeric_Results[i],5)
+                Test_Status=Test_Status and SelfTest_CF.Test_Numeric_Test(CurrentOutputValue[i],MyTestResult.Test_Numeric_Results[i],1)
             if Test_Status==True:
                 MyTestResult.Test_PassFail_Status='Pass'
             else:
