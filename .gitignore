@@ -9,7 +9,7 @@ Hardware_Modules/nifpga/__pycache__/*.*
 Hardware_Modules/nislsc/__pycache__/*.*
 Hardware_Modules/nidcpower/__pycache__/*.*
 Hardware_Modules/KS_N6752A/__pycache__/*.*
-
+Hardware_Modules/Ethernet_Ports/__pycache__/*.*
 
 
 
