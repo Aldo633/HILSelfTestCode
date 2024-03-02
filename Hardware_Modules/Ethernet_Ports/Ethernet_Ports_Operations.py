@@ -12,9 +12,27 @@ import csv
 Measurements=[]
 average=None
 
+def extract_string_between_variables(input_string:str, start_variable:str, end_variable:str):
+    try:
+        # Find the index of the start variable
+        start_index = input_string.index(start_variable) + len(start_variable)
+        
+        # Find the index of the end variable
+        end_index = input_string.index(end_variable, start_index)
+        
+        # Extract the substring between the start and end variables
+        result = input_string[start_index:end_index]
+        return result
+    except ValueError:
+        return None
+
+def substring_after(s, delim):
+    return s.partition(delim)[2]
+
 class Commands:
     Count_USBEth_Adapters_Command=('./Count_USB_Devices.sh')
     Get_USBEth_Adapters_Information_Command=('./Get_USB_Devices_Information.sh')
+    Ping_Command=('./Ping_Interface.sh')
 
     def __init__(self, retry_time=0):
         self.retry_time = retry_time
@@ -115,7 +133,63 @@ class Commands:
         return Adapters_List   
 
 
-    def Get_Eth_Interface_Information(self, host_ip, Machine_UserName, Machine_Password, MAC_Address):
+    def Get_Eth_Interface_Information(self, host_ip, Machine_UserName, Machine_Password, MAC_Address, Testing):
+        if Testing!=True:
+            i = 0
+            while True:
+                SelfTest_CF.Display_Debug_Info("[Ethernet Ports] Trying to connect to %s (%i/%i)" % (host_ip, i, self.retry_time))
+                try:
+                    ssh = paramiko.SSHClient()
+                    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                    #ssh.load_host_keys(os.path.expanduser('~/.ssh/known_hosts'))
+                    ssh.connect(host_ip, username=Machine_UserName, password=Machine_Password, port=22)
+                    break
+                except paramiko.AuthenticationException:
+                    SelfTest_CF.Display_Debug_Info("[Ethernet Ports] Authentication failed when connecting to %s" % host_ip)
+                    sys.exit(1)
+                except paramiko.SSHException:
+                    SelfTest_CF.Display_Debug_Info("[Ethernet Ports] SSH Exception. It failed when connecting to %s" % host_ip)
+                    sys.exit(1)
+                except:
+                    SelfTest_CF.Display_Debug_Info("[Ethernet Ports] Could not SSH to %s, waiting for it to start" % host_ip)
+                    i += 1
+                    time.sleep(2)
+
+                # If we could not connect within time limit
+                if i >= self.retry_time:
+                    SelfTest_CF.Display_Debug_Info("[Ethernet Ports] Could not connect to %s. Giving up" % host_ip)
+                    sys.exit(1)
+
+            SelfTest_CF.Display_Debug_Info('[Ethernet Ports] Get Ethernet Interface Adapter Information')
+            ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('ifconfig')
+            exit_code = ssh_stdout.channel.recv_exit_status() # handles async exit error 
+            EthName=""
+            IP_Address=""
+            if exit_code==0:
+                    decoded_ssh_stdout=ssh_stdout.read().decode('utf-8')
+                    #print(decoded_ssh_stdout)
+                    while (len(decoded_ssh_stdout)>0):   
+                        #We limit search area to current interface:
+                        Temp=extract_string_between_variables(decoded_ssh_stdout, "flags=", " collisions")
+                        #Search for IP Address
+                        Extracted_String=extract_string_between_variables(str(Temp), "inet ", "  netmask")
+                        if len(Extracted_String)>0:
+                            if MAC_Address==extract_string_between_variables(Temp, "ether ", "  txqueuelen"):
+                                #Ethernet Interface Name
+                                EthName=decoded_ssh_stdout[:decoded_ssh_stdout.index(":")]
+                                #IP Address
+                                IP_Address=extract_string_between_variables(str(Temp), "inet ", "  netmask")
+                                decoded_ssh_stdout=""
+                        decoded_ssh_stdout=substring_after(decoded_ssh_stdout, "\n\n")                         
+                                    
+            # Close SSH connection
+            ssh.close()
+        else:
+            EthName="eth99"
+            IP_Address="192.168.2.34"
+        return EthName, IP_Address   
+
+    def Ping_Interface(self, host_ip, Machine_UserName, Machine_Password, Source_IP, Destimation_IP, NB_Replies):
         i = 0
         while True:
             SelfTest_CF.Display_Debug_Info("[Ethernet Ports] Trying to connect to %s (%i/%i)" % (host_ip, i, self.retry_time))
@@ -141,33 +215,31 @@ class Commands:
                 SelfTest_CF.Display_Debug_Info("[Ethernet Ports] Could not connect to %s. Giving up" % host_ip)
                 sys.exit(1)
 
-        SelfTest_CF.Display_Debug_Info('[Ethernet Ports] Get Ethernet Interface Adapter Information')
-        ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command('ifconfig')
+        SelfTest_CF.Display_Debug_Info('[Ethernet Ports] Ping Ethernet Interface')
+        ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(self.Ping_Command+" "+Source_IP+" "+str(Destimation_IP)+" "+str(NB_Replies))
         exit_code = ssh_stdout.channel.recv_exit_status() # handles async exit error 
         if exit_code==0:
                 decoded_ssh_stdout=ssh_stdout.read().decode('utf-8')
-                print(decoded_ssh_stdout)
-                # # Split the output by newline
-                # lines = decoded_ssh_stdout.split('\n')
-
-                # # Extract column names from the first line
-                # column_names = lines[0].split()
-                # #SelfTest_CF.Display_Debug_Info('[Ethernet Ports] '+str(column_names))
-                # # Initialize an empty list to store the data
-                # Adapters_List = []
-                # lines.pop()
-                # for line in lines[1:]:
-                #            # Process the remaining lines
-                #             values = line.split()
-                #             data_dict = {column: value for column, value in zip(column_names, values)}
-                #             Adapters_List.append(data_dict)
-                # SelfTest_CF.Display_Debug_Info('[Ethernet Ports] '+str(Adapters_List))
-                EthName="Eth0"
-                IP_Address="192.168.2.2"         
+                errors=0
+                packet_loss=0
+                #print(decoded_ssh_stdout)
+                # while (len(decoded_ssh_stdout)>0):   
+                #     #We limit search area to current interface:
+                #     Temp=extract_string_between_variables(decoded_ssh_stdout, "flags=", " collisions")
+                #     #Search for IP Address
+                #     Extracted_String=extract_string_between_variables(str(Temp), "inet ", "  netmask")
+                #     if len(Extracted_String)>0:
+                #         if MAC_Address==extract_string_between_variables(Temp, "ether ", "  txqueuelen"):
+                #             #Ethernet Interface Name
+                #             EthName=decoded_ssh_stdout[:decoded_ssh_stdout.index(":")]
+                #             #IP Address
+                #             IP_Address=extract_string_between_variables(str(Temp), "inet ", "  netmask")
+                #             decoded_ssh_stdout=""
+                #     decoded_ssh_stdout=substring_after(decoded_ssh_stdout, "\n\n")                         
                                 
         # Close SSH connection
         ssh.close()
-        return EthName, IP_Address   
+        return errors, packet_loss   
 
 
 
@@ -183,21 +255,22 @@ def Get_USBEth_Adapters_Information(USB_Adapters_Machine_IP, USB_Adapters_Machin
     Adapters_List=MyCommands.Get_USBEth_Adapters_Information(USB_Adapters_Machine_IP, USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword,USB_Adapter_Vendor_ID, USB_Adapter_Product_ID,NB_Adapters)
     return Adapters_List
 
-def Get_Eth_Interface_Information(USB_Adapters_Machine_IP,USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, MAC_Address):
+def Get_Eth_Interface_Information(USB_Adapters_Machine_IP,USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, MAC_Address, Testing):
     MyCommands = Commands()
-    EthName, IP_Address=MyCommands.Get_Eth_Interface_Information(USB_Adapters_Machine_IP, USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, MAC_Address)
+    EthName, IP_Address=MyCommands.Get_Eth_Interface_Information(USB_Adapters_Machine_IP, USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, MAC_Address, Testing)
     return EthName, IP_Address
 
-def Get_MAC_IP_Addresses(USB_Adapters_Machine_IP,USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword,Adapters_List,MAP_SN_MAC_ADDRESS_File_Path):
+def Ping_Interface(USB_Adapters_Machine_IP,USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, Source_IP, Destimation_IP, NB_Replies):
+    MyCommands = Commands()
+    errors, packet_loss =MyCommands.Ping_Interface(USB_Adapters_Machine_IP, USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, Source_IP, Destimation_IP, NB_Replies)
+    return errors, packet_loss 
+
+def Get_MAC_IP_Addresses(USB_Adapters_Machine_IP,USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword,Adapters_List,MAP_SN_MAC_ADDRESS_File_Path,Testing):
     try:
         # Read the tab-delimited file
         with open(MAP_SN_MAC_ADDRESS_File_Path, 'r') as file:
             lines = file.readlines()
-            # reader=csv.reader(file,delimiter='\t')
-            # next(reader) #skip the first row
-            # for row in reader:
-            #     (SerialNumber, MAC) = row
-            #     SN_MAC_Dict[SerialNumber] = MAC            
+        
 
         # Create a list of dictionaries
         SN_MAC_Dict = []
@@ -206,10 +279,7 @@ def Get_MAC_IP_Addresses(USB_Adapters_Machine_IP,USB_Adapters_Machine_UserName, 
             Serial_Number, MAC_Address = line.strip().split("\t")
             SN_MAC_Dict.append({"Serial_Number": Serial_Number, "MAC_Address": MAC_Address})
                     
-        #Print the resulting dictionary
-        #for SN,MAC in SN_MAC_Dict.items():
-        #   print(SN, MAC)
-        #print(SN_MAC_Dict)
+   
         Adapters_List_With_MAC=Adapters_List
         
         #Find MAC Addresses Match from SN_MAC
@@ -221,7 +291,7 @@ def Get_MAC_IP_Addresses(USB_Adapters_Machine_IP,USB_Adapters_Machine_UserName, 
                     print(f"MACAddress for SerialNumber {target_serial_number}: {record['MAC_Address']}")
                     #MAC found, we insert it.
                     Adapters_List_With_MAC[i]['MAC_Address']=record['MAC_Address']
-                    EthName, IP_Address=Get_Eth_Interface_Information(USB_Adapters_Machine_IP,USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, Adapters_List_With_MAC[i]['MAC_Address'])
+                    EthName, IP_Address=Get_Eth_Interface_Information(USB_Adapters_Machine_IP,USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, Adapters_List_With_MAC[i]['MAC_Address'], Testing)
                     if EthName !='':
                         Adapters_List_With_MAC[i]['Eth_Name']=EthName
                     if IP_Address !='':
@@ -231,7 +301,7 @@ def Get_MAC_IP_Addresses(USB_Adapters_Machine_IP,USB_Adapters_Machine_UserName, 
         print("Exception!")
     return Adapters_List_With_MAC
 
-def Ethernet_Ports_Operations(USB_Adapters_Machine_IP, USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword,USB_Adapter_Vendor_ID, USB_Adapter_Product_ID,MAP_SN_MAC_ADDRESS_File_Path):
+def Ethernet_Ports_Operations(USB_Adapters_Machine_IP, USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword,USB_Adapter_Vendor_ID, USB_Adapter_Product_ID,MAP_SN_MAC_ADDRESS_File_Path, IP_Ping_Source, Testing):
     
     My_Module_Result=SelfTest_CF.Module_Result()
     My_Module_Result.Test_Module_Name = "Ethernet Ports"
@@ -243,11 +313,14 @@ def Ethernet_Ports_Operations(USB_Adapters_Machine_IP, USB_Adapters_Machine_User
     try:
         #Count Number of USB->Adapters
         NB_Adapters_Detected=0
-        MyTestResult=SelfTest_CF.Test_Result()
-        MyTestResult.CustomInit('Count USB Ethernet Adapters','Fail',1,[-1],[4],'This test counts number of USB Ethernet Adapters.',str(datetime.datetime.now()))
         NB_Adapters_Detected=Count_USBEth_Adapters(USB_Adapters_Machine_IP, USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, USB_Adapter_Vendor_ID, USB_Adapter_Product_ID)
 
-        MyTestResult.Test_Numeric_Results[0]=NB_Adapters_Detected
+
+        MyTestResult=SelfTest_CF.Test_Result()
+        MyTestResult.CustomInit('Count USB Ethernet Adapters','Fail',1,[],[],'This test counts number of USB Ethernet Adapters.',str(datetime.datetime.now()))
+      
+        MyTestResult.Test_Numeric_Results.append(str(NB_Adapters_Detected))
+        MyTestResult.Test_Expected_Numeric_Results.append('')
 
         if NB_Adapters_Detected!=MyTestResult.Test_Expected_Numeric_Results[0]:
             MyTestResult.Test_PassFail_Status='Fail'
@@ -258,67 +331,123 @@ def Ethernet_Ports_Operations(USB_Adapters_Machine_IP, USB_Adapters_Machine_User
         
         if NB_Adapters_Detected!=0:
             Adapters_List=[]
+
             #Get Ports Information
-            MyTestResultPort=SelfTest_CF.Test_Result()
-            MyTestResultSerialNumber=SelfTest_CF.Test_Result()
+            # Default_Int_Array=[-1]* int(NB_Adapters_Detected)
+            # Default_Str_Array=['']* int(NB_Adapters_Detected)
 
-            Default_Array=[-1]* int(NB_Adapters_Detected)
-
-            MyTestResultPort.CustomInit('Get USB Ethernet Adapters Port','Fail',int(NB_Adapters_Detected),Default_Array,Default_Array,'This test retrieves USB Ethernet Adapters Port information. The test numeric results holds the USB Adapter Physical Port.',str(datetime.datetime.now()))
-            MyTestResultSerialNumber.CustomInit('Get USB Ethernet Adapters Serial Number','Fail',int(NB_Adapters_Detected),Default_Array,Default_Array,'This test retrieves USB Ethernet Adapters Serial Number information. The test numeric results holds the USB Adapter Serial Number.',str(datetime.datetime.now()))
             #Retrieve Information
             Adapters_List=Get_USBEth_Adapters_Information(USB_Adapters_Machine_IP, USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, USB_Adapter_Vendor_ID, USB_Adapter_Product_ID, int(NB_Adapters_Detected))
+
+            MyTestResult=SelfTest_CF.Test_Result()
+            MyTestResult.CustomInit('Get USB Ethernet Adapters Port','Fail',int(NB_Adapters_Detected),[],[],'This test retrieves USB Ethernet Adapters Port information. The test numeric results holds the USB Adapter Physical Port.',str(datetime.datetime.now()))
+
             
             i=0
             Test_Status_Port=True
-            Test_Status_SerialNumber=True
 
             for i in range(len(Adapters_List)):
                 
                 My_Port=int(Adapters_List[i]['Port'])
-                My_SerialNumber=Adapters_List[i]['Serial_Number']
+                  
+                MyTestResult.Test_Numeric_Results.append(str(My_Port))
+                MyTestResult.Test_Expected_Numeric_Results.append('')
                 
-                MyTestResultPort.Test_Numeric_Results[i]=My_Port
                 Test_Status_Port=Test_Status_Port and (My_Port > 0)
                 
-                MyTestResultSerialNumber.Test_Numeric_Results[i]=My_SerialNumber
-                Test_Status_SerialNumber=Test_Status_SerialNumber and (My_SerialNumber !='')
 
             if Test_Status_Port==True:
-                MyTestResultPort.Test_PassFail_Status='Pass'
+                MyTestResult.Test_PassFail_Status='Pass'
             else:
-                MyTestResultPort.Test_PassFail_Status='Fail'      
-            Tests_Result_list.append(MyTestResultPort)
+                MyTestResult.Test_PassFail_Status='Fail'      
+            Tests_Result_list.append(MyTestResult)
             
-            del MyTestResultPort         
+            del MyTestResult        
+
+            MyTestResult=SelfTest_CF.Test_Result()            
+            MyTestResult.CustomInit('Get USB Ethernet Adapters Serial Number','Fail',int(NB_Adapters_Detected),[],[],'This test retrieves USB Ethernet Adapters Serial Number information. The test numeric results holds the USB Adapter Serial Number.',str(datetime.datetime.now()))
+            
+            i=0
+            Test_Status_SerialNumber=True
+            
+            for i in range(len(Adapters_List)):
+                
+                My_SerialNumber=Adapters_List[i]['Serial_Number']                             
+                MyTestResult.Test_Numeric_Results.append(My_SerialNumber)
+                MyTestResult.Test_Expected_Numeric_Results.append('')
+                Test_Status_SerialNumber=Test_Status_SerialNumber and (My_SerialNumber !='')             
 
             if Test_Status_SerialNumber==True:
-                MyTestResultSerialNumber.Test_PassFail_Status='Pass'
+                MyTestResult.Test_PassFail_Status='Pass'
             else:
-                MyTestResultSerialNumber.Test_PassFail_Status='Fail'      
-            Tests_Result_list.append(MyTestResultSerialNumber)
+                MyTestResult.Test_PassFail_Status='Fail'      
+            Tests_Result_list.append(MyTestResult)
             
-            del MyTestResultSerialNumber
+            del MyTestResult
             
             #Retrieve MAC Address and IP Address            
-            MyTestResultMAC=SelfTest_CF.Test_Result()
-            MyTestResultMAC.CustomInit('Get USB Ethernet Adapters MAC','Fail',int(NB_Adapters_Detected),Default_Array,Default_Array,'This test retrieves USB Ethernet Adapters MAC Address information. The test numeric results holds the USB Adapter Ethernet Port MAC Address.',str(datetime.datetime.now()))
-            Adapters_List_With_MAC=Get_MAC_IP_Addresses(USB_Adapters_Machine_IP,USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword,Adapters_List,MAP_SN_MAC_ADDRESS_File_Path) 
+            Adapters_List_With_MAC=Get_MAC_IP_Addresses(USB_Adapters_Machine_IP,USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword,Adapters_List,MAP_SN_MAC_ADDRESS_File_Path, Testing) 
+
+            MyTestResult=SelfTest_CF.Test_Result()
+            MyTestResult.CustomInit('Get USB Ethernet MAC','Fail',int(NB_Adapters_Detected),[],[],'This test retrieves USB Ethernet Adapters Ethernet Adapter MAC Address information. The test numeric results holds the USB Adapter Ethernet Port MAC Address.',str(datetime.datetime.now()))
             
             Test_Status_MAC=True
+            
             i=0
-            for i in range(len(Adapters_List)):    
-                My_MAC=Adapters_List_With_MAC[i]['MAC']                      
-                MyTestResultPort.Test_Numeric_Results[i]=My_MAC
+            for i in range(len(Adapters_List_With_MAC)):    
+                My_MAC=Adapters_List_With_MAC[i]['MAC_Address']                      
+                MyTestResult.Test_Numeric_Results.append(str(My_MAC))
+                MyTestResult.Test_Expected_Numeric_Results.append('')
                 Test_Status_MAC=Test_Status_MAC and (My_MAC !='')
                 
             if Test_Status_MAC==True:
-                MyTestResultMAC.Test_PassFail_Status='Pass'
+                MyTestResult.Test_PassFail_Status='Pass'
             else:
-                MyTestResultMAC.Test_PassFail_Status='Fail'      
-            Tests_Result_list.append(MyTestResultMAC)
+                MyTestResult.Test_PassFail_Status='Fail'      
+            Tests_Result_list.append(MyTestResult)
             
-            del MyTestResultMAC                       
+            del MyTestResult
+
+            MyTestResult=SelfTest_CF.Test_Result()         
+
+            MyTestResult.CustomInit('Get USB Ethernet IP Address','Fail',int(NB_Adapters_Detected),[],[],'This test retrieves USB Ethernet Adapters Ethernet Adapter IP Address information. The test numeric results holds the USB Adapter Ethernet Port IP Address.',str(datetime.datetime.now()))
+
+            Test_Status_IP=True
+            
+            i=0
+            for i in range(len(Adapters_List_With_MAC)):    
+                My_IP=Adapters_List_With_MAC[i]['IP_Address']                      
+                MyTestResult.Test_Numeric_Results.append(My_IP)
+                MyTestResult.Test_Expected_Numeric_Results.append('')
+                Test_Status_IP=Test_Status_IP and (My_IP !='')
+                
+            if Test_Status_IP==True:
+                MyTestResult.Test_PassFail_Status='Pass'
+            else:
+                MyTestResult.Test_PassFail_Status='Fail'      
+            Tests_Result_list.append(MyTestResult)
+            
+            del MyTestResult        
+                                         
+            i=0
+            MyTestResult=SelfTest_CF.Test_Result()         
+            MyTestResult.CustomInit('Ping Interfaces','Fail',int(NB_Adapters_Detected),[],[],'This test sends ping commands to each USB->Ethernet interfaces. The test numeric results holds the number of packets lost.',str(datetime.datetime.now()))
+            Test_Status_Ping=True
+
+            for i in range(len(Adapters_List_With_MAC)):    
+                errors, packet_loss=Ping_Interface(USB_Adapters_Machine_IP,USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, IP_Ping_Source, Adapters_List_With_MAC[i]['IP_Address'], 2)            
+                MyTestResult.Test_Numeric_Results.append(packet_loss)
+                MyTestResult.Test_Expected_Numeric_Results.append(0)
+                Test_Status_Ping=Test_Status_Ping and (packet_loss ==0) and (errors==0)
+                
+            if Test_Status_Ping==True:
+                MyTestResult.Test_PassFail_Status='Pass'
+            else:
+                Test_Status_Ping.Test_PassFail_Status='Fail'      
+            Tests_Result_list.append(MyTestResult)
+            
+            del MyTestResult        
+
  
     except:
        print(f'{"":25}\tERROR\t{"Ethernet Ports Exception.":60}')    
