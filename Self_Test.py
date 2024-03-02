@@ -77,6 +77,8 @@ USB_Adapters_Machine_IP="192.168.2.34"
 USB_Adapters_Machine_UserName="Admin"
 USB_Adapters_Machine_UserPassword=""
 MAP_SN_MAC_ADDRESS_File_Path = os.path.join(CWD,'NICs_MAC_SN_Map.txt')
+Simulate_USBEth_Adapters=True
+IP_Ping_Source="192.168.2.82"
 
 
 #SelfTest_CF.My_Tests_Result_list=[]
@@ -106,7 +108,7 @@ else:
 
     #************************************************* Ethernet Ports ***********************************************
     SelfTest_CF.Display_Debug_Info('Ethernet Ports Test Module: started.')
-    SelfTest_CF.My_Modules_Results.append(Ethernet_Ports_Operations(USB_Adapters_Machine_IP, USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, USB_Adapter_Vendor_ID, USB_Adaper_Product_ID, MAP_SN_MAC_ADDRESS_File_Path))
+    SelfTest_CF.My_Modules_Results.append(Ethernet_Ports_Operations(USB_Adapters_Machine_IP, USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, USB_Adapter_Vendor_ID, USB_Adaper_Product_ID, MAP_SN_MAC_ADDRESS_File_Path, IP_Ping_Source, Simulate_USBEth_Adapters))
     SelfTest_CF.Display_Debug_Info('Ethernet Ports Test Module: completed.')
 
     #****************************************************** SLSC ****************************************************

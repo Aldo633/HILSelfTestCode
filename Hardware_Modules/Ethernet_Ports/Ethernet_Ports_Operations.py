@@ -7,6 +7,7 @@ import datetime
 import time
 import paramiko
 import csv
+import subprocess
 
 
 Measurements=[]
@@ -189,57 +190,23 @@ class Commands:
             IP_Address="192.168.2.34"
         return EthName, IP_Address   
 
-    def Ping_Interface(self, host_ip, Machine_UserName, Machine_Password, Source_IP, Destimation_IP, NB_Replies):
-        i = 0
-        while True:
-            SelfTest_CF.Display_Debug_Info("[Ethernet Ports] Trying to connect to %s (%i/%i)" % (host_ip, i, self.retry_time))
-            try:
-                ssh = paramiko.SSHClient()
-                ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                #ssh.load_host_keys(os.path.expanduser('~/.ssh/known_hosts'))
-                ssh.connect(host_ip, username=Machine_UserName, password=Machine_Password, port=22)
-                break
-            except paramiko.AuthenticationException:
-                SelfTest_CF.Display_Debug_Info("[Ethernet Ports] Authentication failed when connecting to %s" % host_ip)
-                sys.exit(1)
-            except paramiko.SSHException:
-                SelfTest_CF.Display_Debug_Info("[Ethernet Ports] SSH Exception. It failed when connecting to %s" % host_ip)
-                sys.exit(1)
-            except:
-                SelfTest_CF.Display_Debug_Info("[Ethernet Ports] Could not SSH to %s, waiting for it to start" % host_ip)
-                i += 1
-                time.sleep(2)
-
-            # If we could not connect within time limit
-            if i >= self.retry_time:
-                SelfTest_CF.Display_Debug_Info("[Ethernet Ports] Could not connect to %s. Giving up" % host_ip)
-                sys.exit(1)
-
+    def Ping_Interface(self, Source_IP, Destimation_IP, NB_Replies):
         SelfTest_CF.Display_Debug_Info('[Ethernet Ports] Ping Ethernet Interface')
-        ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(self.Ping_Command+" "+Source_IP+" "+str(Destimation_IP)+" "+str(NB_Replies))
-        exit_code = ssh_stdout.channel.recv_exit_status() # handles async exit error 
-        if exit_code==0:
-                decoded_ssh_stdout=ssh_stdout.read().decode('utf-8')
-                errors=0
-                packet_loss=0
-                #print(decoded_ssh_stdout)
-                # while (len(decoded_ssh_stdout)>0):   
-                #     #We limit search area to current interface:
-                #     Temp=extract_string_between_variables(decoded_ssh_stdout, "flags=", " collisions")
-                #     #Search for IP Address
-                #     Extracted_String=extract_string_between_variables(str(Temp), "inet ", "  netmask")
-                #     if len(Extracted_String)>0:
-                #         if MAC_Address==extract_string_between_variables(Temp, "ether ", "  txqueuelen"):
-                #             #Ethernet Interface Name
-                #             EthName=decoded_ssh_stdout[:decoded_ssh_stdout.index(":")]
-                #             #IP Address
-                #             IP_Address=extract_string_between_variables(str(Temp), "inet ", "  netmask")
-                #             decoded_ssh_stdout=""
-                #     decoded_ssh_stdout=substring_after(decoded_ssh_stdout, "\n\n")                         
-                                
-        # Close SSH connection
-        ssh.close()
-        return errors, packet_loss   
+
+        # status = subprocess.call(
+        #     ['ping', '-q', '-I',Source_IP,'-c',NB_Replies, Destimation_IP],
+        #     stdout=subprocess.DEVNULL)
+        
+        # Execute the ping command and capture the output
+        try:
+            result = subprocess.check_output(['ping', '-I', Source_IP, '-c', str(NB_Replies), Destimation_IP], stderr=subprocess.DEVNULL, text=True)
+            #print(f"Ping output:\n{result}")
+            error=0;
+    
+        except subprocess.CalledProcessError as e:
+            SelfTest_CF.Display_Debug_Info('[Ethernet Ports] Exception during Ping.')
+            error=-1
+        return error   
 
 
 
@@ -260,10 +227,10 @@ def Get_Eth_Interface_Information(USB_Adapters_Machine_IP,USB_Adapters_Machine_U
     EthName, IP_Address=MyCommands.Get_Eth_Interface_Information(USB_Adapters_Machine_IP, USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, MAC_Address, Testing)
     return EthName, IP_Address
 
-def Ping_Interface(USB_Adapters_Machine_IP,USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, Source_IP, Destimation_IP, NB_Replies):
+def Ping_Interface(Source_IP, Destimation_IP, NB_Replies):
     MyCommands = Commands()
-    errors, packet_loss =MyCommands.Ping_Interface(USB_Adapters_Machine_IP, USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, Source_IP, Destimation_IP, NB_Replies)
-    return errors, packet_loss 
+    error=MyCommands.Ping_Interface(Source_IP, Destimation_IP, NB_Replies)
+    return error 
 
 def Get_MAC_IP_Addresses(USB_Adapters_Machine_IP,USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword,Adapters_List,MAP_SN_MAC_ADDRESS_File_Path,Testing):
     try:
@@ -431,14 +398,14 @@ def Ethernet_Ports_Operations(USB_Adapters_Machine_IP, USB_Adapters_Machine_User
                                          
             i=0
             MyTestResult=SelfTest_CF.Test_Result()         
-            MyTestResult.CustomInit('Ping Interfaces','Fail',int(NB_Adapters_Detected),[],[],'This test sends ping commands to each USB->Ethernet interfaces. The test numeric results holds the number of packets lost.',str(datetime.datetime.now()))
+            MyTestResult.CustomInit('Ping Interfaces','Fail',int(NB_Adapters_Detected),[],[],'This test sends ping commands to each USB->Ethernet interfaces. The test numeric results holds the error code returned by ping command (0=no error).',str(datetime.datetime.now()))
             Test_Status_Ping=True
 
             for i in range(len(Adapters_List_With_MAC)):    
-                errors, packet_loss=Ping_Interface(USB_Adapters_Machine_IP,USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, IP_Ping_Source, Adapters_List_With_MAC[i]['IP_Address'], 2)            
-                MyTestResult.Test_Numeric_Results.append(packet_loss)
+                error=Ping_Interface(IP_Ping_Source, Adapters_List_With_MAC[i]['IP_Address'], 2)            
+                MyTestResult.Test_Numeric_Results.append(error)
                 MyTestResult.Test_Expected_Numeric_Results.append(0)
-                Test_Status_Ping=Test_Status_Ping and (packet_loss ==0) and (errors==0)
+                Test_Status_Ping=Test_Status_Ping and (error==0)
                 
             if Test_Status_Ping==True:
                 MyTestResult.Test_PassFail_Status='Pass'
