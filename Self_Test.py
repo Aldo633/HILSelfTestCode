@@ -78,7 +78,7 @@ USB_Adapters_Machine_UserName="Admin"
 USB_Adapters_Machine_UserPassword=""
 MAP_SN_MAC_ADDRESS_File_Path = os.path.join(CWD,'NICs_MAC_SN_Map.txt')
 Simulate_USBEth_Adapters=True
-IP_Ping_Source="192.168.2.82"
+IP_Ping_Source="192.168.2.84"
 
 
 #SelfTest_CF.My_Tests_Result_list=[]
@@ -117,32 +117,32 @@ else:
     # SelfTest_CF.Display_Debug_Info('SLSC-12202 Test Module: completed.')
 
     #**************************************************** FPGA RMIO *************************************************
-    # SelfTest_CF.Display_Debug_Info('FPGA RMIO Test Module: started.')
-    # SelfTest_CF.My_Modules_Results.append(FPGA_RMIO_Operations(gRPC_channel, RMIO_FPGA_ResourceName, RMIO_Bitfile_Path, RMIO_Bitfile_Signature))
-    # SelfTest_CF.Display_Debug_Info('FPGA RMIO Module: completed.')
+    SelfTest_CF.Display_Debug_Info('FPGA RMIO Test Module: started.')
+    SelfTest_CF.My_Modules_Results.append(FPGA_RMIO_Operations(gRPC_channel, RMIO_FPGA_ResourceName, RMIO_Bitfile_Path, RMIO_Bitfile_Signature))
+    SelfTest_CF.Display_Debug_Info('FPGA RMIO Module: completed.')
 
     # #**************************************************** FPGA RDIO *************************************************
-    # SelfTest_CF.Display_Debug_Info('FPGA RDIO Test Module: started.')
-    # SelfTest_CF.My_Modules_Results.append(FPGA_RDIO_Operations(gRPC_channel, RDIO_FPGA_ResourceName, RDIO_Bitfile_Path, RDIO_Bitfile_Signature))
-    # SelfTest_CF.Display_Debug_Info('FPGA RDIO Module: completed.')
+    SelfTest_CF.Display_Debug_Info('FPGA RDIO Test Module: started.')
+    SelfTest_CF.My_Modules_Results.append(FPGA_RDIO_Operations(gRPC_channel, RDIO_FPGA_ResourceName, RDIO_Bitfile_Path, RDIO_Bitfile_Signature))
+    SelfTest_CF.Display_Debug_Info('FPGA RDIO Module: completed.')
 
     # #**********************************************  Analog Outputs Boards ******************************************
-    # SelfTest_CF.Display_Debug_Info('PXIe-6738 Test Module: started.')
-    # SelfTest_CF.My_Modules_Results.append(PXIe_6738_Operations(gRPC_channel, PXIe_6738_Device, PXIe_4303_Device))
-    # SelfTest_CF.Display_Debug_Info('PXIe-6738 Test Module: completed.')
+    SelfTest_CF.Display_Debug_Info('PXIe-6738 Test Module: started.')
+    SelfTest_CF.My_Modules_Results.append(PXIe_6738_Operations(gRPC_channel, PXIe_6738_Device, PXIe_4303_Device))
+    SelfTest_CF.Display_Debug_Info('PXIe-6738 Test Module: completed.')
 
-    # SelfTest_CF.Display_Debug_Info('PXIe-4322 Test Module: started.')
-    # SelfTest_CF.My_Modules_Results.append(PXIe_4322_Operations(gRPC_channel, PXIe_4322_Device, PXIe_4303_Device))
-    # SelfTest_CF.Display_Debug_Info('PXIe-4322 Test Module: completed.')
+    SelfTest_CF.Display_Debug_Info('PXIe-4322 Test Module: started.')
+    SelfTest_CF.My_Modules_Results.append(PXIe_4322_Operations(gRPC_channel, PXIe_4322_Device, PXIe_4303_Device))
+    SelfTest_CF.Display_Debug_Info('PXIe-4322 Test Module: completed.')
 
     #****************************************************  DC Power  *************************************************
-    # SelfTest_CF.Display_Debug_Info('PXIe-4136_1 Test Module: started.')
-    # SelfTest_CF.My_Modules_Results.append(PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName_1, DCPower_Init_Options, DCPowerChannels, N6700_Chassis_IP, N6752A_Channel_First))
-    # SelfTest_CF.Display_Debug_Info('PXIe-4136_1 Test Module: completed.')
+    SelfTest_CF.Display_Debug_Info('PXIe-4136_1 Test Module: started.')
+    SelfTest_CF.My_Modules_Results.append(PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName_1, DCPower_Init_Options, DCPowerChannels, N6700_Chassis_IP, N6752A_Channel_First))
+    SelfTest_CF.Display_Debug_Info('PXIe-4136_1 Test Module: completed.')
 
-    # SelfTest_CF.Display_Debug_Info('PXIe-4136_2 Test Module: started.')
-    # SelfTest_CF.My_Modules_Results.append(PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName_2, DCPower_Init_Options, DCPowerChannels, N6700_Chassis_IP, N6752A_Channel_Second))
-    # SelfTest_CF.Display_Debug_Info('PXIe-4136_2 Test Module: completed.')
+    SelfTest_CF.Display_Debug_Info('PXIe-4136_2 Test Module: started.')
+    SelfTest_CF.My_Modules_Results.append(PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName_2, DCPower_Init_Options, DCPowerChannels, N6700_Chassis_IP, N6752A_Channel_Second))
+    SelfTest_CF.Display_Debug_Info('PXIe-4136_2 Test Module: completed.')
         
     
     #*******************************************  Close gRPC Channel ********************************************

@@ -255,7 +255,7 @@ def Get_MAC_IP_Addresses(USB_Adapters_Machine_IP,USB_Adapters_Machine_UserName, 
             target_serial_number = Adapters_List[i]['Serial_Number']
             for record in SN_MAC_Dict:
                 if record["Serial_Number"] == target_serial_number:
-                    print(f"MACAddress for SerialNumber {target_serial_number}: {record['MAC_Address']}")
+                    SelfTest_CF.Display_Debug_Info("[Ethernet Ports] MACAddress for SerialNumber {target_serial_number}: {record['MAC_Address']}")
                     #MAC found, we insert it.
                     Adapters_List_With_MAC[i]['MAC_Address']=record['MAC_Address']
                     EthName, IP_Address=Get_Eth_Interface_Information(USB_Adapters_Machine_IP,USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, Adapters_List_With_MAC[i]['MAC_Address'], Testing)
@@ -376,11 +376,9 @@ def Ethernet_Ports_Operations(USB_Adapters_Machine_IP, USB_Adapters_Machine_User
             del MyTestResult
 
             MyTestResult=SelfTest_CF.Test_Result()         
-
             MyTestResult.CustomInit('Get USB Ethernet IP Address','Fail',int(NB_Adapters_Detected),[],[],'This test retrieves USB Ethernet Adapters Ethernet Adapter IP Address information. The test numeric results holds the USB Adapter Ethernet Port IP Address.',str(datetime.datetime.now()))
 
             Test_Status_IP=True
-            
             i=0
             for i in range(len(Adapters_List_With_MAC)):    
                 My_IP=Adapters_List_With_MAC[i]['IP_Address']                      
@@ -403,16 +401,17 @@ def Ethernet_Ports_Operations(USB_Adapters_Machine_IP, USB_Adapters_Machine_User
 
             for i in range(len(Adapters_List_With_MAC)):    
                 error=Ping_Interface(IP_Ping_Source, Adapters_List_With_MAC[i]['IP_Address'], 2)            
-                MyTestResult.Test_Numeric_Results.append(error)
-                MyTestResult.Test_Expected_Numeric_Results.append(0)
-                Test_Status_Ping=Test_Status_Ping and (error==0)
+                if error==0: MyTestResult.Test_Numeric_Results.append('Ping successful')
+                else: MyTestResult.Test_Numeric_Results.append('Ping failed')
+                MyTestResult.Test_Expected_Numeric_Results.append('Ping successful')
+                Test_Status_Ping=Test_Status_Ping and (error=='Ping successful')
                 
             if Test_Status_Ping==True:
                 MyTestResult.Test_PassFail_Status='Pass'
             else:
-                Test_Status_Ping.Test_PassFail_Status='Fail'      
+                MyTestResult.Test_PassFail_Status='Fail'      
             Tests_Result_list.append(MyTestResult)
-            
+          
             del MyTestResult        
 
  
