@@ -58,7 +58,7 @@ PXIe_4322_Device = "PXI1Slot9"
 PXIe_4303_Device = "PXI1Slot10"
 
 #Keysight PowerSupply
-N6700_Chassis_IP="192.168.2.76" 
+N6700_Chassis_IP="192.168.2.87" 
 N6752A_Channel_First=1
 N6752A_Channel_Second=2
 
