@@ -57,20 +57,24 @@ def KS_N6752A_Configure_EnableOutput(N6700_Chassis_IP, N6752A_Channel, Voltage_S
             if Measurement:
                 MyTestResult.Test_Numeric_Results[0]=float(Measurement)
             else:
-                MyTestResult.Test_Numeric_Results[-5000]
+                MyTestResult.Test_Numeric_Results[0]=-5000
         else:
-            MyTestResult.Test_Numeric_Results[-5001]
+            MyTestResult.Test_Numeric_Results[0]=-5001
         #Perform comparison between setpoint and actual measurement with 5% tolerance
         Test_Status=SelfTest_CF.Test_Numeric_Test(Voltage_Setpoint,MyTestResult.Test_Numeric_Results[0],5)
         if Test_Status==True:
             MyTestResult.Test_PassFail_Status='Pass'
         else:    
             MyTestResult.Test_PassFail_Status='Fail'
-    except PS_KS_N6700_Socket.timeout:
-        #PS_KS_N6700=None  
-        print(f'{"":25}\tERROR\t{"KS N6752A Socket Timeout Exception.":60}')   
+    # except PS_KS_N6700_Socket.timeout:
+    #     #PS_KS_N6700=None  
+    #     print(f'{"":25}\tERROR\t{"KS N6752A Socket Timeout Exception.":60}')  
+    #     MyTestResult.Test_Numeric_Results[0]=-5002 
+    #     MyTestResult.Test_PassFail_Status='Fail'
     except :
         print(f'{"":25}\tERROR\t{"KS N6752A Socket Exception.":60}')   
+        MyTestResult.Test_Numeric_Results[0] =-5003
+        MyTestResult.Test_PassFail_Status='Fail'
  
     return(MyTestResult,PS_KS_N6700_Socket)
 

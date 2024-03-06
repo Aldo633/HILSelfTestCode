@@ -198,7 +198,7 @@ def PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName, DCPower_Init_Option
         Tests_Result_list.append(MyTestResult)
         del MyTestResult
 
-        if PS_KS_N6700!=None:
+        if Tests_Result_list[0].Test_PassFail_Status !="Fail":
             # initiate the session.
             initiate_response = nidcpower_client.Initiate(
                 nidcpower_types.InitiateRequest(
@@ -245,15 +245,22 @@ def PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName, DCPower_Init_Option
                 MyTestResult.Test_PassFail_Status='Fail'
             Tests_Result_list.append(MyTestResult)
             del MyTestResult           
-
+        else:
+            # Test with SMU Feedback Channel
+            MyTestResult=SelfTest_CF.Test_Result()
+            MyTestResult.CustomInit('PXIe-4136: CH'+DCPowerChannels+ ' with SMU feedback channel','Fail',1,[-9999.99],[VOLTAGE_LEVEL],'This test measures actual value on channel ch'+DCPowerChannels+'. Voltage is output by Keysight Power Supply Channel '+str(N6752A_Channel),str(datetime.datetime.now()))
+            MyTestResult.Test_PassFail_Status='Fail'
+            Tests_Result_list.append(MyTestResult)
+            del MyTestResult    
    
     except :
     #     print(f"NI-DCPOWER Exception")    
         print(f'{"":25}\tERROR\t{"PXIe-4136 Exception.":60}')    
+        PS_KS_N6700=None
 
     finally:
         #We disable PS output and close session
-        if PS_KS_N6700!=None:
+        if Tests_Result_list[0].Test_PassFail_Status !="Fail":
             KS_N6752A_DisableOutput(PS_KS_N6700,N6752A_Channel)
          #---------------------- Close NI-DC Power session -----------------------
         if "vi" in vars() and vi.id != 0:

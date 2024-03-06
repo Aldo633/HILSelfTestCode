@@ -8,8 +8,7 @@ CWD=os.getcwd()
 #print(f"CWD:{str(CWD)}")
 
 #File path to serialized JSON results
-JSON_TEST_FILE_JSONPICKLE = os.path.join(CWD,'Tests_data_JSONPICKLE.json')
-JSON_TEST_FILE_JSON_DUMPS = os.path.join(CWD,'Tests_data_JSON_DUMPS.json')
+JSON_TEST_FILE = os.path.join(CWD,'Tests_data.json')
 REPORT_FILE_PATH=os.path.join(CWD,'Report.txt')
 
 sys.path.append(os.path.join(CWD,'gRPC_Client','python_sourcefile'))
@@ -58,7 +57,7 @@ PXIe_4322_Device = "PXI1Slot9"
 PXIe_4303_Device = "PXI1Slot10"
 
 #Keysight PowerSupply
-N6700_Chassis_IP="192.168.2.87" 
+N6700_Chassis_IP="192.168.2.90" 
 N6752A_Channel_First=1
 N6752A_Channel_Second=2
 
@@ -165,15 +164,10 @@ SelfTest_CF.Log_Test_Report_TXT(REPORT_FILE_PATH, GlobalPassFail, SelfTest_CF.My
 print(f"******************************************* TEST DATA LOGGING ***************************************************")
 #JSON Serialization/Deserialization
 #---- Serialization
-# print(f'{"jsonpickle approach: NB Modules logged to file:":36}\t{len(SelfTest_CF.My_Modules_Results)}')
-# SelfTest_CF.json_serialize(SelfTest_CF.My_Modules_Results, JSON_TEST_FILE_JSONPICKLE, "jsonpickle")
-#print(f'{"json.dumps approach: NB Modules logged to file:":36}\t{len(SelfTest_CF.My_Modules_Results)}')
-SelfTest_CF.json_serialize(SelfTest_CF.My_Modules_Results, JSON_TEST_FILE_JSON_DUMPS, "json.dumps")
+Data_FilePath=SelfTest_CF.json_serialize(SelfTest_CF.My_Modules_Results, JSON_TEST_FILE)
 
 # print(f"******************************************** DATA RETRIEVING ***************************************************")
 # #---- Deserialization
-# SelfTest_CF.My_TestResult_fromFile=SelfTest_CF.json_load_file(JSON_TEST_FILE_JSONPICKLE, "jsonpickle")
-# print(f'{"jsonpickle approach: NB Modules read back from file:":36}\t{len(SelfTest_CF.My_TestResult_fromFile)}')
-# SelfTest_CF.My_TestResult_fromFile=SelfTest_CF.json_load_file(JSON_TEST_FILE_JSON_DUMPS, "json.load")
+#SelfTest_CF.My_TestResult_fromFile=SelfTest_CF.json_load_file(Data_FilePath)
 # print(f'{"json.load approach: NB Modules read back from file:":36}\t{len(SelfTest_CF.My_TestResult_fromFile)}')
 print(f"************************************************* END **********************************************************")

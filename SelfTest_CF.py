@@ -5,7 +5,6 @@ from enum import Enum
 import random
 import datetime
 import time
-import jsonpickle
 import json
 
 DEBUG_DISPLAY=True
@@ -103,50 +102,33 @@ def Initiate_List(NB_Items,Test_Module_Name):
 
 
 
-def json_serialize(My_Modules, filename, method):
-    """Function to serialize Results to JSON and log file. 2 methods supported: "jsonpickle" and "json.dumps", """
+def json_serialize(My_Modules, filename):
+    """Function to serialize Results to JSON and log file using "json dumps", """
 
     file_name_without_extension, file_extension = os.path.splitext(filename)
     Data_FilePath_With_Date= file_name_without_extension+"_"+datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+file_extension    
    
-    if method=="jsonpickle":
-        f = open(Data_FilePath_With_Date, 'w')
-        json_obj = jsonpickle.encode(My_Modules)   
-        f.write(json_obj)
-        f.close()
-    elif method=="json.dumps":
-        i=0
-        res ="["
-        #res =""
-        for i in range (len(My_Modules)):
-            res= res + My_Modules[i].toJSON()
-            if i<(len(My_Modules)-1):
-                res = res+",\n"
-        res=res+"]"
-        f = open(Data_FilePath_With_Date, 'w')
-        f.write(res)
-        f.close()
-    else:
-        json_serialize(My_Modules, filename, "json.dumps")
-    return
+    i=0
+    res ="["
+    #res =""
+    for i in range (len(My_Modules)):
+        res= res + My_Modules[i].toJSON()
+        if i<(len(My_Modules)-1):
+            res = res+",\n"
+    res=res+"]"
+    f = open(Data_FilePath_With_Date, 'w')
+    f.write(res)
+    f.close()
+    return Data_FilePath_With_Date
 
 
-def json_load_file(filename,method):
+def json_load_file(filename):
     """Function to read back serialized Results from log file"""
         
-    if method=="jsonpickle":
-        f = open(filename)
-        json_str = f.read()
-        obj=Test_Result()
-        obj=jsonpickle.decode(json_str)
-        f.close()
-    elif method=="json.load":
-        f = open(filename)
-        obj=Test_Result()
-        obj= json.load(f)
-        f.close()
-    else:
-        json_load_file(filename,"json.dumps")
+    f = open(filename)
+    obj=Test_Result()
+    obj= json.load(f)
+    f.close()
     return obj
 
 def ComputeGlobalPassFail(Modules_Results:list):
