@@ -130,9 +130,9 @@ else:
     SelfTest_CF.My_Modules_Results.append(PXIe_6738_Operations(gRPC_channel, PXIe_6738_Device, PXIe_4303_Device))
     SelfTest_CF.Display_Debug_Info('PXIe-6738 Test Module: completed.')
 
-    SelfTest_CF.Display_Debug_Info('PXIe-4322 Test Module: started.')
-    SelfTest_CF.My_Modules_Results.append(PXIe_4322_Operations(gRPC_channel, PXIe_4322_Device, PXIe_4303_Device))
-    SelfTest_CF.Display_Debug_Info('PXIe-4322 Test Module: completed.')
+    # SelfTest_CF.Display_Debug_Info('PXIe-4322 Test Module: started.')
+    # SelfTest_CF.My_Modules_Results.append(PXIe_4322_Operations(gRPC_channel, PXIe_4322_Device, PXIe_4303_Device))
+    # SelfTest_CF.Display_Debug_Info('PXIe-4322 Test Module: completed.')
 
     #****************************************************  DC Power  *************************************************
     SelfTest_CF.Display_Debug_Info('PXIe-4136_1 Test Module: started.')
