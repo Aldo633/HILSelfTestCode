@@ -6,7 +6,12 @@ Minimal_Value = -4.0
 Voltage_Increment = 1.0
 
 PXIe_4322_Channels=[0,1,2,3,4,5,6,7]
-PXIe_4303_Channels=[3,7,11,15,19,23,27,31]
+#PXIe_4303_Channels=[3,7,11,15,19,23,27,31]
+PXIe_6738_DI_Channels="port1"
+NB_Tests=2
+#NB_Output_Values_Per_Test=8
+Analog_Output_Values=[3.3,0.0,3.3,0.0,3.3,0.0,3.3,0.0,0.0,3.3,0.0,3.3,0.0,3.3,0.0,3.3]
+Expected_DI_Values=[85,170]
 
 import sys
 import os
@@ -15,9 +20,6 @@ CWD=os.getcwd()
 sys.path.append(CWD)
 
 import SelfTest_CF
-# sys.path.append(os.path.join(CWD,'Python','gRPC_Client','python_sourcefile'))
-# sys.path.append(os.path.join(CWD,'Python','Hardware_Modules','nidaqmx'))
-
 import datetime
 
 import grpc
@@ -27,9 +29,9 @@ import time
 import numpy as np
 import random
 
-from PXIe_4303_Operations import PXIe_4303_Operations
+from PXIe_6738_DI_Operations import PXIe_6738_DI_Operations
 
-Measurements=[]
+Measurements=None
 grpc_nidmm=None
 vi_nidmm=None
 dmm_Status=None
@@ -46,7 +48,7 @@ def Create_Channels_String(Device_Resource_Name, Channels):
         i=i+1
     return Channels_String
 
-def Create_Test_Module_Description_String(PXIe_4322_Channels, CurrentOutputValue, PXIe_4303_Channels):
+def Create_Test_Module_Description_String(PXIe_4322_Channels, CurrentOutputValue, PXIe_6738_DI_Channels):
     """This function returns the Test Module Description String based on the list of Channels passed as argument."""
     i=0
     Description_String='This test outputs ['
@@ -62,18 +64,10 @@ def Create_Test_Module_Description_String(PXIe_4322_Channels, CurrentOutputValue
         if i <len(PXIe_4322_Channels)-1:
             Description_String=Description_String+","
         i=i+1
-    Description_String=Description_String+'] of PXIe-4322 and measures actual value using following PXIe-4303 channels: ['
-    i=0
-    for i in range(len(PXIe_4322_Channels)):
-        Description_String=Description_String+ str(PXIe_4303_Channels[i])
-        if i <len(PXIe_4322_Channels)-1:
-            Description_String=Description_String+","
-        i=i+1
-
-    Description_String=Description_String+'].'
+    Description_String=Description_String+'] of PXIe-4322 and measures actual value using following PXIe-6738 Digital Input Port: '+str(PXIe_6738_DI_Channels)+'.'
     return Description_String
 
-def PXIe_4322_Operations(gRPC_channel, PXIe_4322_Device, PXIe_4303_Device):
+def PXIe_4322_Operations(gRPC_channel, PXIe_4322_Device, PXIe_6738_Device):
     My_Module_Result=SelfTest_CF.Module_Result()
     My_Module_Result.Test_Module_Name = TEST_MODULE_NAME
     My_Module_Result.Status_Code=0
@@ -93,68 +87,56 @@ def PXIe_4322_Operations(gRPC_channel, PXIe_4322_Device, PXIe_4303_Device):
             )
             raise Exception(f"Error: {response.error_string}")
     try:
-
-        #---------------------- AO Channels Test -----------------------
         response = daqmx_client.CreateTask(nidaqmx_types.CreateTaskRequest(session_name="My PXIe-4322 Task"))
         raise_if_error_daqmx(response)
         task = response.task
-        i=0
-        CurrentOutputValue =[]
-        MeasuredValue = []
-        for i in range(len(PXIe_4322_Channels)):
-            CurrentOutputValue.append((float) (Minimal_Value+i*Voltage_Increment))
-            MeasuredValue.append(9999.9)
-            i=i+1
-        MyTestResult=SelfTest_CF.Test_Result()
-        MyTestResult.CustomInit('PXIe-4322: check channels','Fail',8,MeasuredValue,CurrentOutputValue,Create_Test_Module_Description_String(PXIe_4322_Channels, CurrentOutputValue, PXIe_4303_Channels),str(datetime.datetime.now()))
-        
-        raise_if_error_daqmx(
-            daqmx_client.CreateAOVoltageChan(
-                nidaqmx_types.CreateAOVoltageChanRequest(
-                    task=task,
-                    physical_channel=Create_Channels_String(PXIe_4322_Device, PXIe_4322_Channels),
-                    min_val=-10.0,
-                    max_val=10.0,
-                    units=nidaqmx_types.VOLTAGE_UNITS2_VOLTS,
-                )
-            )
-        )
-
+        raise_if_error_daqmx(daqmx_client.CreateAOVoltageChan(nidaqmx_types.CreateAOVoltageChanRequest(task=task,physical_channel=Create_Channels_String(PXIe_4322_Device, PXIe_4322_Channels),min_val=-10.0,max_val=10.0,units=nidaqmx_types.VOLTAGE_UNITS2_VOLTS)))
         raise_if_error_daqmx(daqmx_client.StartTask(nidaqmx_types.StartTaskRequest(task=task)))
+        j=0
+        for j in range(NB_Tests):
+            #---------------------- AO Channels Test -----------------------
+            MyTestResult=SelfTest_CF.Test_Result()
+            CurrentOutputValue =Analog_Output_Values[j*NB_CHANNELS: (j*NB_CHANNELS)+NB_CHANNELS]
+               
+            MyTestResult.CustomInit('PXIe-4322: check channels, Value: '+hex(Expected_DI_Values[j]),'Fail',1,[-1],[Expected_DI_Values[j]],Create_Test_Module_Description_String(PXIe_4322_Channels, CurrentOutputValue, PXIe_6738_DI_Channels),str(datetime.datetime.now()))
+            
+            raise_if_error_daqmx(daqmx_client.WriteAnalogF64(nidaqmx_types.WriteAnalogF64Request(task=task,num_samps_per_chan=1,data_layout=nidaqmx_types.GROUP_BY_GROUP_BY_CHANNEL,write_array=CurrentOutputValue,timeout=10.0)))
 
+            #----------------------------------------------- PXIe-6738 DI Acquisition  ------------------------------------------------
+            Measurements=None
+            PXIe_6738_DI_Status, Measurements=PXIe_6738_DI_Operations(gRPC_channel, PXIe_6738_Device, PXIe_6738_DI_Channels)
+            #-----------------------------------------------------------------------------------------------------------------------
+
+            if PXIe_6738_DI_Status==0:
+                MyTestResult.Test_Numeric_Results[0]=Measurements[0]
+                if Measurements[0]==Expected_DI_Values[j]:
+                    MyTestResult.Test_PassFail_Status='Pass'
+                else:
+                    MyTestResult.Test_PassFail_Status='Fail'
+            Tests_Result_list.append(MyTestResult)
+            del MyTestResult            
+ 
+        # if task:
+        #     daqmx_client.StopTask(nidaqmx_types.StopTaskRequest(task=task))
+            
+        #We output 0.0 volts on all channels.
+        #raise_if_error_daqmx(daqmx_client.StartTask(nidaqmx_types.StartTaskRequest(task=task)))
+        Zero_Values=[0.0]*len(PXIe_4322_Channels)
         raise_if_error_daqmx(
             daqmx_client.WriteAnalogF64(
                 nidaqmx_types.WriteAnalogF64Request(
                     task=task,
                     num_samps_per_chan=1,
                     data_layout=nidaqmx_types.GROUP_BY_GROUP_BY_CHANNEL,
-                    write_array=CurrentOutputValue,
+                    write_array=Zero_Values,
                     timeout=10.0,
                 )
             )
-        )
-
-        #----------------------------------------------- PXIe-4303 Acquisition  ------------------------------------------------
-        PXIe_4303_Status, Measurements, average=PXIe_4303_Operations(gRPC_channel, PXIe_4303_Device, PXIe_4303_Channels)
-        #-----------------------------------------------------------------------------------------------------------------------
-        Test_Status=True
-        if PXIe_4303_Status==0:
-            i=0
-            for i in range(len(CurrentOutputValue)):
-                MyTestResult.Test_Numeric_Results[i]=average[i]
-                Test_Status=Test_Status and SelfTest_CF.Test_Numeric_Test(CurrentOutputValue[i],MyTestResult.Test_Numeric_Results[i],1)
-            if Test_Status==True:
-                MyTestResult.Test_PassFail_Status='Pass'
-            else:
-                MyTestResult.Test_PassFail_Status='Fail'
-        else:
-            MyTestResult.Test_PassFail_Status='Fail'
-        Tests_Result_list.append(MyTestResult)
-        del MyTestResult            
- 
+        )            
+        time.sleep(0.5)
         if task:
             daqmx_client.StopTask(nidaqmx_types.StopTaskRequest(task=task))
-            daqmx_client.ClearTask(nidaqmx_types.ClearTaskRequest(task=task))
+            daqmx_client.ClearTask(nidaqmx_types.ClearTaskRequest(task=task))            
     except:
     #     print(f'PXIe-4322 Exception.')
         print(f'{"":25}\tERROR\t{"PXIe-4322 Exception.":60}')    
