@@ -34,6 +34,9 @@ Input_Source = 0
 Input_Sink = 1
 Output_Source = 2
 Output_Sink = 3
+Output_PushPull = 4
+Channel_Disconnect = 5
+
 
 #import time
 #import numpy as np
@@ -273,6 +276,7 @@ def SLSC_Operations(SLSC_Chassis_Name):
                         MyTestResult.Test_Numeric_Results[i]=0
 
                     #---------- Select Vsup0 for Bank 1----------
+                    set_property_VsupSelect["params"]["session_id"] = session_id
                     set_property_VsupSelect["params"]["physical_channels"]=[SLSC_12202_Devices[i]+"/bank1"]
 
                     response = http.request("POST", slsc_url, body=json.dumps(set_property_VsupSelect))
@@ -287,6 +291,7 @@ def SLSC_Operations(SLSC_Chassis_Name):
                         MyTestResult.Test_Numeric_Results[i]=0
                     
                     #---------- Configure Input Threshold to 2.5V for Bank 0 ---------- 
+                    set_property_InputThreshold_5V["params"]["session_id"] = session_id
                     set_property_InputThreshold_5V["params"]["physical_channels"]=[SLSC_12202_Devices[i]+"/bank0"]
 
                     response = http.request("POST", slsc_url, body=json.dumps(set_property_InputThreshold_5V))
@@ -340,6 +345,12 @@ def SLSC_Operations(SLSC_Chassis_Name):
                 
                 execute_unreserveDevices_request['params']['session_id'] = session_id
                 execute_unreserveDevices_request["params"]["devices"] = SLSC_12202_Devices
+
+                response = http.request("POST", slsc_url, body=json.dumps(execute_unreserveDevices_request))
+                response_dict = json.loads(response.data)
+
+                execute_unreserveDevices_request['params']['session_id'] = session_id
+                execute_unreserveDevices_request["params"]["devices"] = SLSC_Chassis_Name
 
                 response = http.request("POST", slsc_url, body=json.dumps(execute_unreserveDevices_request))
                 response_dict = json.loads(response.data)
