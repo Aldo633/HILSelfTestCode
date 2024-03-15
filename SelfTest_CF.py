@@ -6,6 +6,7 @@ import random
 import datetime
 import time
 import json
+import platform
 
 DEBUG_DISPLAY=True
 
@@ -106,8 +107,11 @@ def json_serialize(My_Modules, filename):
     """Function to serialize Results to JSON and log file using "json dumps", """
 
     file_name_without_extension, file_extension = os.path.splitext(filename)
-    Data_FilePath_With_Date= file_name_without_extension+"_"+datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+file_extension    
-   
+    if platform.system()== "Windows":
+        Data_FilePath_With_Date= file_name_without_extension+"_"+datetime.datetime.now().strftime("%Y_%m_%d %H_%M_%S")+file_extension    
+    else:
+        Data_FilePath_With_Date= file_name_without_extension+"_"+datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+file_extension    
+  
     i=0
     res ="["
     #res =""
@@ -245,7 +249,10 @@ def Log_Test_Report_TXT(ReportFilePath, GlobalPassFail, My_Modules_Results, Disp
     if Display_Report==True:
         print(ReportBody)
     file_name, file_extension = os.path.splitext(ReportFilePath)
-    ReportFilePath_With_Date=file_name+"_"+datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+file_extension
+    if platform.system()== "Windows":
+        ReportFilePath_With_Date=file_name+"_"+datetime.datetime.now().strftime("%Y_%m_%d %H_%M_%S")+file_extension
+    else:
+        ReportFilePath_With_Date=file_name+"_"+datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+file_extension
     f = open(ReportFilePath_With_Date, 'w')
     f.write(ReportBody)
     f.close
