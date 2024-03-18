@@ -34,23 +34,19 @@ from PXIe_4322_Operations import PXIe_4322_Operations
 from PXIe_4136_Operations import PXIe_4136_Operations
 
 #gRPC Server
-ServerIP="192.168.2.34"
-ServerPort = 31763
-gRPC_channel=None
-gRPC_ServerMachine_UserName = 'admin'
-gRPC_ServerMachine_Password = ''
+
 
 #FPGA RMIO
-RMIO_Bitfile_Path = "//home//admin//FPGA_Bitfiles//PXIe7847R_SelfTest.lvbitx"
-RMIO_Bitfile_Signature = "DC163AC6287FBFB65DEEBBBE683470C3"
-RMIO_FPGA_ResourceName = "PXI1Slot3"
+RMIO_Bitfile_Path = "//home//admin//FPGA_Bitfiles//PXIe7846R_SelfTest.lvbitx"
+RMIO_Bitfile_Signature = "5F1413A25569133829C69232D595A53A"
+RMIO_FPGA_ResourceName = "PXI1Slot2"
 #FPGA RDIO
 RDIO_Bitfile_Path = "//home//admin//FPGA_Bitfiles//PXIe7820R_SelfTest.lvbitx"
 RDIO_Bitfile_Signature = "C8C05D6D335094892D20B78090AF3087"
-RDIO_FPGA_ResourceName = "PXI1Slot2"
+RDIO_FPGA_ResourceName = "PXI1Slot3"
 #Analog Output Boards
-PXIe_6738_Device = "PXI1Slot8"
-PXIe_4322_Device = "PXI1Slot9"
+PXIe_6738_Device = "PXI1Slot4"
+PXIe_4322_Device = "PXI1Slot7"
 
 #Analog Input Boards
 PXIe_4303_Device = "PXI1Slot10"
@@ -69,15 +65,30 @@ FPGA_Main_IndicatorU8_Connector0Port_1 = 0x1800A
 FPGA_Main_IndicatorU8_Connector1Port_1 = 0x18022
 FPGA_Main_IndicatorU8_Connector1Port_3 = 0x1802A
 
+PXIe_6738_Channels_First_Test=[0]
+CurrentOutputValue = [5]
+
 import datetime
 
 
 import nifpga_pb2 as nifpga_types
 import nifpga_pb2_grpc as grpc_nifpga
+import nidaqmx_pb2 as nidaqmx_types
+import nidaqmx_pb2_grpc as grpc_nidaqmx
 import time
 import numpy as np
 
 
+def Create_Channels_String(Device_Resource_Name, Channels):
+    """This function prepares the NI-DAQmx channels string."""
+    i=0
+    Channels_String=''
+    for i in range(len(Channels)):
+        Channels_String=Channels_String+ Device_Resource_Name + "/ao" + str(Channels[i])
+        if i<len(Channels)-1:
+            Channels_String=Channels_String+","
+        i=i+1
+    return Channels_String
 
 def List_NI_SLSC_12202_Modules(session_id, slsc_url, slsc_chassis_name, Test_Numeric_Expected_Result):
     #Test_Status=False
@@ -112,6 +123,11 @@ def List_NI_SLSC_12202_Modules(session_id, slsc_url, slsc_chassis_name, Test_Num
                 response_dict = json.loads(response.data)
                 device_Slot = response_dict["result"]["value"][0]
                 Measurements.append(device_Slot)
+
+                
+                
+
+                
             else:
                 Measurements.append(-1)
         #print(f'NB Modules NI SLSC-12202 found in setup: {len(SLSC_12202_Devices)}.')
@@ -204,7 +220,7 @@ def raise_if_error(response):
 
 
 #gRPC Server
-ServerIP="192.168.2.34"
+ServerIP="10.0.72.6"
 ServerPort = 31763
 gRPC_channel=None
 gRPC_ServerMachine_UserName = 'admin'
@@ -231,15 +247,17 @@ init_request = {"id": "Self_Test","jsonrpc": "2.0","method": "initializeSession"
 close_request = {"id": "Self_Test","jsonrpc": "2.0","method": "closeSession","params":{"session_id": ""}}
 get_modules_request = {"id": "Self_Test","jsonrpc": "2.0","method": "getProperty","params":{"session_id": "","devices":[""],"property": "Dev.Modules"}}
 get_property_request = {"id": "Self_Test","jsonrpc": "2.0","method": "getProperty","params":{"session_id": "","devices":[""],"property": ""}}
+get_property_request2 = {"id": "Self_Test","jsonrpc": "2.0","method": "getProperty","params":{"session_id": "","physical_channels":[""],"property": ""}}
 execute_reserveDevices_request = {"id": "Self_Test","jsonrpc": "2.0","method": "reserveDevices","params":{"session_id": "","devices":[""],"access":"ReadWrite","reservation_group":"self_test"}}
-set_property_request =  {"id": "Self_Test","jsonrpc": "2.0","method": "setProperty","params":{"session_id": "","devices":[""],"physical_channels":[""],"property": "","value":None}}
+set_property_request =  {"id": "Self_Test","jsonrpc": "2.0","method": "setProperty","params":{"session_id": "","devices":[""],"property": "","value":None}}
 set_LineDirection_property_request =  {"id": "Self_Test","jsonrpc": "2.0","method": "setProperty","params":{"session_id": "","physical_channels":[""],"property": "NI.Line.Direction","value":None}}
 execute_unreserveDevices_request = {"id": "Self_Test","jsonrpc": "2.0","method": "unreserveDevices","params":{"session_id": "","devices":[""]}}
 set_property_commit_request = {"id": "Self_Test","jsonrpc": "2.0","method": "commitProperties","params":{"session_id": "","devices":[""]}}
 set_property_VsupSelect =  {"id": "Self_Test","jsonrpc": "2.0","method": "setProperty","params":{"session_id": "","physical_channels":[""],"property": "NI.VsupSelect","value":1}}
+set_property_ni_enable5Vrange =  {"id": "Self_Test","jsonrpc": "2.0","method": "setProperty","params":{"session_id": "","physical_channels":[""],"property": "NI.RangeEnable5V","value":True}}
 set_property_InputThreshold_5V =  {"id": "Self_Test","jsonrpc": "2.0","method": "setProperty","params":{"session_id": "","physical_channels":[""],"property": "NI.InputThreshold5V","value":2.5}}
-
-
+update_channel_configuration = {"id": "Self_Test","jsonrpc": "2.0","method": "executeCommand","params":{"session_id": "","devices":[""],"command":"NI.UpdateChannelConfiguration"}}
+update_test_mode = {"id": "Self_Test","jsonrpc": "2.0","method": "executeCommand","params":{"session_id": "","devices":[""],"command":"NI.UpdateTestMode"}}
 #Line Direction
 Input_Source = 0
 Input_Sink = 1
@@ -253,7 +271,7 @@ SelfTest_CF.My_Modules_Results=[]
 
 #import time
 import numpy as np
-SSH_gRPC_Server.Start_gRPC_Server(ServerIP, gRPC_ServerMachine_UserName, gRPC_ServerMachine_Password)
+#SSH_gRPC_Server.Start_gRPC_Server(ServerIP, gRPC_ServerMachine_UserName, gRPC_ServerMachine_Password)
 
 ##Init SLSC
 #response=None
@@ -278,13 +296,46 @@ if len(SLSC_12202_Devices)>0:
     if 'error' in response_dict:
         print(f'Error while reserving module: code: {response_dict["error"]["code"]}, Message: {response_dict["error"]["message"]}.')
 
+    #Check Vsup1 status
+    get_property_request["params"]["session_id"] = session_id
+    get_property_request["params"]["devices"] = [SLSC_Devices[1]]
+    get_property_request["params"]["property"] = "NI.StatusVsup_0PowerGood"
+    response = http.request("POST", slsc_url, body=json.dumps(get_property_request))
+    response_dict = json.loads(response.data)
+    Vsup0Status = response_dict["result"]["value"][0]
+
+    get_property_request["params"]["session_id"] = session_id
+    get_property_request["params"]["devices"] = [SLSC_Devices[1]]
+    get_property_request["params"]["property"] = "NI.StatusVsup_1PowerGood"
+    response = http.request("POST", slsc_url, body=json.dumps(get_property_request))
+    response_dict = json.loads(response.data)
+    Vsup1Status = response_dict["result"]["value"][0]
+
+    #Enable test mode
+    
+    set_property_request["params"]["session_id"] = session_id
+    set_property_request["params"]["devices"] = [SLSC_Devices[1]]
+    set_property_request["params"]["property"] = "NI.TestModeEnable"
+    set_property_request["params"]["value"]=[False]
+    response = http.request("POST", slsc_url, body=json.dumps(set_property_request))
+    response_dict = json.loads(response.data)
+
+    set_property_request["params"]["session_id"] = session_id
+    set_property_request["params"]["devices"] = [SLSC_Devices[1]]
+    set_property_request["params"]["property"] = "NI.TestModeValue"
+    set_property_request["params"]["value"]=[0]
+    response = http.request("POST", slsc_url, body=json.dumps(set_property_request))
+    response_dict = json.loads(response.data)
+    
     #Setting direction
     set_LineDirection_property_request["params"]["session_id"] = session_id    
     set_LineDirection_property_request["params"]["physical_channels"]=[SLSC_12202_Devices[1]+"/port0/line0"]
-    set_LineDirection_property_request["params"]["value"]=[Input_Sink]
+    set_LineDirection_property_request["params"]["value"]=[Output_Source]
+    response = http.request("POST", slsc_url, body=json.dumps(set_LineDirection_property_request))
+    response_dict = json.loads(response.data)
+
     set_LineDirection_property_request["params"]["physical_channels"]=[SLSC_12202_Devices[1]+"/port1/line0"]
     set_LineDirection_property_request["params"]["value"]=[Input_Sink]
-
     response = http.request("POST", slsc_url, body=json.dumps(set_LineDirection_property_request))
     response_dict = json.loads(response.data)
 
@@ -292,6 +343,9 @@ if len(SLSC_12202_Devices)>0:
         if 'code' in response_dict["error"]:
             print(f'Error while setting Lines Direction for "/port0/line0:7" : error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
     
+   #Enabling Test Mode
+   
+   
     #---------- Select Vsup0 for Bank 0----------
     set_property_VsupSelect["params"]["session_id"] = session_id
     set_property_VsupSelect["params"]["physical_channels"]=[SLSC_12202_Devices[1]+"/bank0"]
@@ -304,16 +358,33 @@ if len(SLSC_12202_Devices)>0:
             print(f'Error while setting Vsup for Bank 0" : error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
 
     #---------- Select Threshold for Bank 0----------
+    set_property_ni_enable5Vrange["params"]["session_id"] = session_id
+    set_property_ni_enable5Vrange["params"]["physical_channels"]=[SLSC_12202_Devices[1]+"/bank0"]
+    response = http.request("POST", slsc_url, body=json.dumps(set_property_ni_enable5Vrange))
+    response_dict = json.loads(response.data)
+
+    
     set_property_InputThreshold_5V["params"]["session_id"] = session_id
     set_property_InputThreshold_5V["params"]["physical_channels"]=[SLSC_12202_Devices[1]+"/bank0"]
 
     response = http.request("POST", slsc_url, body=json.dumps(set_property_InputThreshold_5V))
     response_dict = json.loads(response.data)
-
     if 'error' in response_dict:
-        if 'code' in response_dict["error"]:
-            print(f'Error while setting Input Threshold for Bank 0" : error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
+       if 'code' in response_dict["error"]:
+           print(f'Error while setting Input Threshold for Bank 0" : error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
 
+
+    #Getting lineindex
+    get_property_request2["params"]["session_id"] = session_id
+    get_property_request2["params"]["physical_channels"] = [SLSC_Devices[1]+"/port0/line0"]
+    get_property_request2["params"]["property"] = "NI.Line.Index"
+    response = http.request("POST", slsc_url, body=json.dumps(get_property_request2))
+    response_dict = json.loads(response.data)
+    LineIndexport0_0 = response_dict["result"]["value"][0]
+
+
+
+   
     #--------------- Commit ------------------------
     set_property_commit_request["params"]["session_id"] = session_id
     set_property_commit_request ["params"]["devices"] = SLSC_12202_Devices
@@ -325,18 +396,29 @@ if len(SLSC_12202_Devices)>0:
         if 'code' in response_dict["error"]:
             print(f'Error while applying Device Configuration: error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
     
+
+    update_channel_configuration["params"]["session_id"] = session_id
+    update_channel_configuration ["params"]["devices"] = SLSC_12202_Devices[1]   
+
+    response = http.request("POST", slsc_url, body=json.dumps(update_channel_configuration))
+    response_dict = json.loads(response.data)
+
+    if 'error' in response_dict:
+        if 'code' in response_dict["error"]:
+            print(f'Error while applying update channel config: error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
+
+    update_test_mode["params"]["session_id"] = session_id
+    update_test_mode ["params"]["devices"] = SLSC_12202_Devices[1]   
+
+    response = http.request("POST", slsc_url, body=json.dumps(update_test_mode))
+    response_dict = json.loads(response.data)
+
+    if 'error' in response_dict:
+        if 'code' in response_dict["error"]:
+            print(f'Error while applying update test mode: error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
+
     #--------------- Unreserve ------------------------
-    execute_unreserveDevices_request['params']['session_id'] = session_id
-    execute_unreserveDevices_request["params"]["devices"] = SLSC_12202_Devices
-
-    response = http.request("POST", slsc_url, body=json.dumps(execute_unreserveDevices_request))
-    response_dict = json.loads(response.data)
-
-    execute_unreserveDevices_request['params']['session_id'] = session_id
-    execute_unreserveDevices_request["params"]["devices"] = SLSC_Chassis_Name
-
-    response = http.request("POST", slsc_url, body=json.dumps(execute_unreserveDevices_request))
-    response_dict = json.loads(response.data)
+    
 
 try:
     gRPC_channel = grpc.insecure_channel(f"{ServerIP}:{ServerPort}")
@@ -347,9 +429,19 @@ else:
     #**************************************************** Manual test with 6738 into SLSC*************************************************
     # Create a FPGA client.
     nifpga_client = grpc_nifpga.NiFpgaStub(gRPC_channel)
+    daqmx_client = grpc_nidaqmx.NiDAQmxStub(gRPC_channel)
+    task = None
     #task = None
     FPGA_session = None
     Measurements=[]
+    
+    def raise_if_error_daqmx(response):
+       """Raise an exception if an error was returned."""
+       if response.status != 0:
+           response = daqmx_client.GetErrorString(
+               nidaqmx_types.GetErrorStringRequest(error_code=response.status)
+           )
+           raise Exception(f"Error: {response.error_string}")
 
     try:
         response = nifpga_client.Open(
@@ -361,19 +453,36 @@ else:
                 attribute_mapped= nifpga_types.OPEN_ATTRIBUTE_NoRun,
             )
         )
-        Status_Code=raise_if_error(response)
+
         FPGA_session = response.session
+        response = daqmx_client.CreateTask(nidaqmx_types.CreateTaskRequest(session_name="My PXIe-6738 Task"))
+        task = response.task
+        raise_if_error_daqmx(
+            daqmx_client.CreateAOVoltageChan(
+                nidaqmx_types.CreateAOVoltageChanRequest(
+                    task=task,
+                    physical_channel=Create_Channels_String(PXIe_6738_Device,PXIe_6738_Channels_First_Test),
+                    min_val=-10.0,
+                    max_val=10.0,
+                    units=nidaqmx_types.VOLTAGE_UNITS2_VOLTS,
+                )
+            )
+        )
+        raise_if_error_daqmx(daqmx_client.StartTask(nidaqmx_types.StartTaskRequest(task=task)))
+
+        Status_Code=raise_if_error(response)
+        
     
         response=nifpga_client.Run(
-            nifpga_types.RunRequest(
-                session=FPGA_session,
-                #attribute=nifpga_types.RUN_ATTRIBUTE_UNSPECIFIED,
-                attribute_raw=0,
-            )
+           nifpga_types.RunRequest(
+               session=FPGA_session,
+               attribute=nifpga_types.RUN_ATTRIBUTE_UNSPECIFIED,
+               #attribute_raw=0,
+           )
         )
         Status_Code=raise_if_error(response)
 
-        # Start Bitfile
+        #Start Bitfile
         response=nifpga_client.WriteBool(
             nifpga_types.WriteBoolRequest(
                 session=FPGA_session,
@@ -387,10 +496,22 @@ else:
             nifpga_types.WriteU8Request(
                 session=FPGA_session,
                 control = FPGA_Main_ControlU8_Connector1Port_0,
-                value = 0x01,
+                value = 0xFF,
                 )
         )
         raise_if_error(response)
+
+        raise_if_error_daqmx(
+            daqmx_client.WriteAnalogF64(
+                nidaqmx_types.WriteAnalogF64Request(
+                    task=task,
+                    num_samps_per_chan=1,
+                    data_layout=nidaqmx_types.GROUP_BY_GROUP_BY_CHANNEL,
+                    write_array=CurrentOutputValue,
+                    timeout=10.0,
+                )
+            )
+        )
 
         response=nifpga_client.ReadU8(
             nifpga_types.ReadU8Request(
@@ -399,6 +520,7 @@ else:
             )
         )
         raise_if_error(response)
+        Measurements.append(response.value)
 
 
 
@@ -412,10 +534,14 @@ else:
             nifpga_client.Close(
                 nifpga_types.CloseRequest(
                     session=FPGA_session,
-                    #attribute=nifpga_types.CLOSE_ATTRIBUTE_UNSPECIFIED,
-                    attribute=nifpga_types.CLOSE_ATTRIBUTE_NoResetIfLastSession,
+                    attribute=nifpga_types.CLOSE_ATTRIBUTE_UNSPECIFIED,
+                    #attribute=nifpga_types.CLOSE_ATTRIBUTE_NoResetIfLastSession,
                 )
             )
+
+    if task:
+            daqmx_client.StopTask(nidaqmx_types.StopTaskRequest(task=task))
+            daqmx_client.ClearTask(nidaqmx_types.ClearTaskRequest(task=task))
 
 
     #**************************************************** FPGA RMIO *************************************************
@@ -436,7 +562,17 @@ else:
     #SelfTest_CF.Display_Debug_Info('PXIe-4322 Test Module: started.')
     #SelfTest_CF.My_Modules_Results.append(PXIe_4322_Operations(gRPC_channel, PXIe_4322_Device, PXIe_6738_Device))
     #SelfTest_CF.Display_Debug_Info('PXIe-4322 Test Module: completed.')
+execute_unreserveDevices_request['params']['session_id'] = session_id
+execute_unreserveDevices_request["params"]["devices"] = SLSC_12202_Devices
 
+response = http.request("POST", slsc_url, body=json.dumps(execute_unreserveDevices_request))
+response_dict = json.loads(response.data)
+
+execute_unreserveDevices_request['params']['session_id'] = session_id
+execute_unreserveDevices_request["params"]["devices"] = SLSC_Chassis_Name
+
+response = http.request("POST", slsc_url, body=json.dumps(execute_unreserveDevices_request))
+response_dict = json.loads(response.data)
     
 
 
