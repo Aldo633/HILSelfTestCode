@@ -41,20 +41,21 @@ gRPC_ServerMachine_Password = ''
 SLSC_Chassis_Name = "SLSC-12001-0310592E"
 
 #FPGA RMIO
-RMIO_Bitfile_Path = "//home//admin//FPGA_Bitfiles//PXIe7847R_SelfTest.lvbitx"
-RMIO_Bitfile_Signature = "DC163AC6287FBFB65DEEBBBE683470C3"
-RMIO_FPGA_ResourceName = "PXI1Slot3"
+RMIO_Bitfile_Path = "//home//admin//FPGA_Bitfiles//PXIe7846R_SelfTest.lvbitx"
+#RMIO_Bitfile_Signature = "DC163AC6287FBFB65DEEBBBE683470C3" #7847
+RMIO_Bitfile_Signature = "5F1413A25569133829C69232D595A53A" #7846
+RMIO_FPGA_ResourceName = "PXI1Slot2"
 #FPGA RDIO
 RDIO_Bitfile_Path = "//home//admin//FPGA_Bitfiles//PXIe7820R_SelfTest.lvbitx"
 RDIO_Bitfile_Signature = "C8C05D6D335094892D20B78090AF3087"
-RDIO_FPGA_ResourceName = "PXI1Slot2"
+RDIO_FPGA_ResourceName = "PXI1Slot3"
 
 #Analog Output Boards
-PXIe_6738_Device = "PXI1Slot8"
-PXIe_4322_Device = "PXI1Slot9"
+PXIe_6738_Device = "PXI1Slot4"
+PXIe_4322_Device = "PXI1Slot7"
 
 #Analog Input Boards
-PXIe_4303_Device = "PXI1Slot10"
+PXIe_4303_Device = "PXI1Slot14"
 
 #Keysight PowerSupply
 N6700_Chassis_IP="192.168.2.90" 
@@ -62,12 +63,12 @@ N6752A_Channel_First=1
 N6752A_Channel_Second=2
 
 #DC-Power
-DCPower_ResourceName_1 = "PXI1Slot12"
-DCPower_ResourceName_2 = "PXI1Slot15"
-DCPower_Init_Options = "Simulate=1,DriverSetup=Model:4136;BoardType:PXIe"
+DCPower_ResourceName_1 = "PXI1Slot10"
+DCPower_ResourceName_2 = "PXI1Slot11"
+#DCPower_Init_Options = "Simulate=1,DriverSetup=Model:4136;BoardType:PXIe"
+DCPower_Init_Options = ""
 DCPowerChannels = "0"
-DCPower_ResourceName_1_PXIe_4303_Channels = [30]
-DCPower_ResourceName_2_PXIe_4303_Channels = [31]
+
 
 #Ethernet Adpters
 USB_Adapter_Vendor_ID="0930"

@@ -12,7 +12,7 @@ This component is expected to run on a PXI RT-Target.
 NI-Linux RT Image used: 2023 Q4.
 List of software installed on the RT-Target.
 
-![image](https://github.com/VincentRuault/HIL_BMS_Tester_Self_Test/assets/10373828/4a21bc0b-ad17-4d35-850c-868ab8ceb85c)
+![image](./documentation/images/286074013-4a21bc0b-ad17-4d35-850c-868ab8ceb85c.png)
 
 
 # gRPC Device ServerServer Startup
@@ -54,12 +54,12 @@ User can use available script ```StartServer.sh```, copy it *to target*. It load
 ```console
 bash StartServer.sh
 ```
-![image](https://github.com/VincentRuault/HIL_BMS_Tester_Self_Test/assets/10373828/0547bb4a-fe71-43ae-ac24-15805286e0e6)
+![image](./documentation/images/284362819-0547bb4a-fe71-43ae-ac24-15805286e0e6.png)
 Once started successfully, the gRPCS Device Server returns the gRPC port used. Default port is: ```31763```.
 ## Stop Server
 User can stop gRPC Device Server on NI-PXI RT-Target using keys combination ```Ctrl+c``` in the window from which gRPC Device Server was started.
 
-![image](https://github.com/VincentRuault/HIL_BMS_Tester_Self_Test/assets/10373828/d3eddd5e-9181-4074-b9dd-01a5fed5a8f3)
+![image](./documentation/images/284363018-d3eddd5e-9181-4074-b9dd-01a5fed5a8f3.png)
 
 
 # Self-Test execution
@@ -1412,9 +1412,9 @@ This section shows the JSON file created after a Self-Test with **json.dumps** m
 In *LabVIEW* subfolder, there is a VI "Read_JSON_File.vi" which shows how user could read back a JSO file created using the **json** Python library.
 This VI requires the JSONtext VI library to be installed with LabVIEW via VI Package Manager.
 VI Front-Panel
-![image](https://github.com/VincentRuault/HIL_BMS_Tester_Self_Test/assets/10373828/70801f43-e841-4f97-935b-fec98a9acb34)
+![image](./documentation/images/287055785-70801f43-e841-4f97-935b-fec98a9acb34.png)
 VI Diagram
-![image](https://github.com/VincentRuault/HIL_BMS_Tester_Self_Test/assets/10373828/22fe0074-d0de-43a4-a0ff-12f96a7c53c3)
+![image](./documentation/images/287055849-22fe0074-d0de-43a4-a0ff-12f96a7c53c3.png)
 
 
 
