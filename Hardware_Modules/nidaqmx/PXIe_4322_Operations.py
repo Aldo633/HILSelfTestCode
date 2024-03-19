@@ -114,7 +114,8 @@ def PXIe_4322_Operations(gRPC_channel, PXIe_4322_Device, PXIe_6738_Device):
                 else:
                     MyTestResult.Test_PassFail_Status='Fail'
             Tests_Result_list.append(MyTestResult)
-            del MyTestResult            
+            del MyTestResult
+            del Measurements            
  
         # if task:
         #     daqmx_client.StopTask(nidaqmx_types.StopTaskRequest(task=task))

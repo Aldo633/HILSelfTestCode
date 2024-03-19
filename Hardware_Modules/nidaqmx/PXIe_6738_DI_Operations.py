@@ -15,12 +15,12 @@ import time
 #import random
 
 DI_daqmx_client=None
-Measurements=[]
+
 Error=0
 
 def PXIe_6738_DI_Operations(gRPC_channel, PXIe_6738_Device, PXIe_6738_DI_Channels):
     
-   
+    Measurements=[]
     # Create a gRPC channel + client.
     DI_daqmx_client = grpc_nidaqmx.NiDAQmxStub(gRPC_channel)
     task_DI = None

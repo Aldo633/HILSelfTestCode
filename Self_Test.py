@@ -29,7 +29,7 @@ from PXIe_4322_Operations import PXIe_4322_Operations
 from PXIe_4136_Operations import PXIe_4136_Operations
 
 #gRPC Server
-ServerIP="192.168.2.34"
+ServerIP="10.0.72.6"
 ServerPort = 31763
 gRPC_channel=None
 gRPC_ServerMachine_UserName = 'admin'
@@ -58,7 +58,7 @@ PXIe_4322_Device = "PXI1Slot7"
 PXIe_4303_Device = "PXI1Slot14"
 
 #Keysight PowerSupply
-N6700_Chassis_IP="192.168.2.90" 
+N6700_Chassis_IP="10.0.72.8" 
 N6752A_Channel_First=1
 N6752A_Channel_Second=2
 
@@ -107,9 +107,9 @@ else:
     # SelfTest_CF.Display_Debug_Info('Syn 1 Test Module: completed.')
 
     #************************************************* Ethernet Ports ***********************************************
-    SelfTest_CF.Display_Debug_Info('Ethernet Ports Test Module: started.')
-    SelfTest_CF.My_Modules_Results.append(Ethernet_Ports_Operations(USB_Adapters_Machine_IP, USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, USB_Adapter_Vendor_ID, USB_Adaper_Product_ID, MAP_SN_MAC_ADDRESS_File_Path, IP_Ping_Source, Simulate_USBEth_Adapters))
-    SelfTest_CF.Display_Debug_Info('Ethernet Ports Test Module: completed.')
+    #SelfTest_CF.Display_Debug_Info('Ethernet Ports Test Module: started.')
+    #SelfTest_CF.My_Modules_Results.append(Ethernet_Ports_Operations(USB_Adapters_Machine_IP, USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, USB_Adapter_Vendor_ID, USB_Adaper_Product_ID, MAP_SN_MAC_ADDRESS_File_Path, IP_Ping_Source, Simulate_USBEth_Adapters))
+    #SelfTest_CF.Display_Debug_Info('Ethernet Ports Test Module: completed.')
 
     #****************************************************** SLSC ****************************************************
     # SelfTest_CF.Display_Debug_Info('SLSC-12202 Test Module: started.')

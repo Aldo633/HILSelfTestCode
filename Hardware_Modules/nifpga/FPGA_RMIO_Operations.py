@@ -123,7 +123,7 @@ def FPGA_RMIO_Operations(gRPC_channel, FPGA_ResourceName,Bitfile_Path,Bitfile_Si
     try:
         response = nifpga_client.Open(
             nifpga_types.OpenRequest(
-                session_name="my FPGA session",
+                session_name="my RMIO FPGA session",
                 bitfile=Bitfile_Path,
                 signature=Bitfile_Signature,
                 resource=FPGA_ResourceName,
@@ -136,8 +136,8 @@ def FPGA_RMIO_Operations(gRPC_channel, FPGA_ResourceName,Bitfile_Path,Bitfile_Si
         response=nifpga_client.Run(
             nifpga_types.RunRequest(
                 session=FPGA_session,
-                #attribute=nifpga_types.RUN_ATTRIBUTE_UNSPECIFIED,
-                attribute_raw=0,
+                attribute=nifpga_types.RUN_ATTRIBUTE_UNSPECIFIED,
+                #attribute_raw=0,
             )
         )
         My_Module_Result.Status_Code=raise_if_error(response)

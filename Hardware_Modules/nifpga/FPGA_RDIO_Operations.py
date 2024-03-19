@@ -9,22 +9,22 @@ FPGA_Main_ControlU8_Connector0Port_0 = 0x18006
 FPGA_Main_ControlU8_Connector1Port_0 = 0x1801E
 FPGA_Main_ControlU8_Connector1Port_2 = 0x18026
 
-FPGA_Main_ControlU8_Connector0Port_0 = 0x18006,
-FPGA_Main_ControlU8_Connector0Port_2 = 0x18016,
-FPGA_Main_ControlU8_Connector1Port_0 = 0x1801E,
-FPGA_Main_ControlU8_Connector1Port_2 = 0x18026,
-FPGA_Main_ControlU8_Connector2Port_0 = 0x1802E,
-FPGA_Main_ControlU8_Connector2Port_2 = 0x18036,
-FPGA_Main_ControlU8_Connector3Port_0 = 0x1803E,
+FPGA_Main_ControlU8_Connector0Port_0 = 0x18006
+FPGA_Main_ControlU8_Connector0Port_2 = 0x18016
+FPGA_Main_ControlU8_Connector1Port_0 = 0x1801E
+FPGA_Main_ControlU8_Connector1Port_2 = 0x18026
+FPGA_Main_ControlU8_Connector2Port_0 = 0x1802E
+FPGA_Main_ControlU8_Connector2Port_2 = 0x18036
+FPGA_Main_ControlU8_Connector3Port_0 = 0x1803E
 FPGA_Main_ControlU8_Connector3Port_2 = 0x18046
 
-FPGA_Main_IndicatorU8_Connector0Port_1 = 0x1800A,
-FPGA_Main_IndicatorU8_Connector0Port_3 = 0x1801A,
-FPGA_Main_IndicatorU8_Connector1Port_1 = 0x18022,
-FPGA_Main_IndicatorU8_Connector1Port_3 = 0x1802A,
-FPGA_Main_IndicatorU8_Connector2Port_1 = 0x18032,
-FPGA_Main_IndicatorU8_Connector2Port_3 = 0x1803A,
-FPGA_Main_IndicatorU8_Connector3Port_1 = 0x18042,
+FPGA_Main_IndicatorU8_Connector0Port_1 = 0x1800A
+FPGA_Main_IndicatorU8_Connector0Port_3 = 0x1801A
+FPGA_Main_IndicatorU8_Connector1Port_1 = 0x18022
+FPGA_Main_IndicatorU8_Connector1Port_3 = 0x1802A
+FPGA_Main_IndicatorU8_Connector2Port_1 = 0x18032
+FPGA_Main_IndicatorU8_Connector2Port_3 = 0x1803A
+FPGA_Main_IndicatorU8_Connector3Port_1 = 0x18042
 FPGA_Main_IndicatorU8_Connector3Port_3 = 0x1804A
 
 import sys
@@ -107,11 +107,11 @@ def FPGA_RDIO_Operations(gRPC_channel,FPGA_ResourceName,Bitfile_Path,Bitfile_Sig
     try:
         response = nifpga_client.Open(
             nifpga_types.OpenRequest(
-                session_name="my FPGA session",
+                session_name="my FPGA RDIO session",
                 bitfile=Bitfile_Path,
                 signature=Bitfile_Signature,
                 resource=FPGA_ResourceName,
-                attribute_mapped= nifpga_types.OPEN_ATTRIBUTE_NoRun,
+                attribute_mapped=nifpga_types.OPEN_ATTRIBUTE_NoRun,
             )
         )
         My_Module_Result.Status_Code=raise_if_error(response)
@@ -120,8 +120,8 @@ def FPGA_RDIO_Operations(gRPC_channel,FPGA_ResourceName,Bitfile_Path,Bitfile_Sig
         response=nifpga_client.Run(
             nifpga_types.RunRequest(
                 session=FPGA_session,
-                #attribute=nifpga_types.RUN_ATTRIBUTE_UNSPECIFIED,
-                attribute_raw=0,
+                attribute=nifpga_types.RUN_ATTRIBUTE_UNSPECIFIED,
+                #attribute_raw=0,
             )
         )
         My_Module_Result.Status_Code=raise_if_error(response)

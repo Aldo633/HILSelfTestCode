@@ -1,6 +1,4 @@
-r"""Provides some N6752A features
-
-"""
+r"""Provides some N6752A features"""
 import sys
 import os
 import socket
@@ -44,10 +42,10 @@ def KS_N6752A_Configure_EnableOutput(N6700_Chassis_IP, N6752A_Channel, Voltage_S
         # PS_KS_N6700_Socket.send(FormatCommand("*IDN?"))
         # IDN_Answer=PS_KS_N6700_Socket.recv(256)
 
+        #Set overvoltage level
+        PS_KS_N6700_Socket.send(FormatCommand("VOLT:PROT:LEV "+str(Voltage_Setpoint*1.5)+", "+FormatChannelString(N6752A_Channel)))
         #Configure Output voltage
         PS_KS_N6700_Socket.send(FormatCommand("VOLT "+str(Voltage_Setpoint)+", "+FormatChannelString(N6752A_Channel)))
-        #Set overvoltage level
-        PS_KS_N6700_Socket.send(FormatCommand("VOLT:PROT:LEV "+str(Voltage_Setpoint*1.1)+", "+FormatChannelString(N6752A_Channel)))
         #Set current level
         PS_KS_N6700_Socket.send(FormatCommand("CURR "+str(Current_Level)+", "+FormatChannelString(N6752A_Channel)))
         #Turn on over current protection
@@ -92,7 +90,7 @@ def KS_N6752A_DisableOutput(PS_KS_N6700_Socket,N6752A_Channel):
 
     """
     #  #Turn the output OFF
-    PS_KS_N6700_Socket.send(FormatCommand("OUTP OFF, @"+str(N6752A_Channel)))
+    PS_KS_N6700_Socket.send(FormatCommand("OUTP OFF, "+FormatChannelString(N6752A_Channel)))
     PS_KS_N6700_Socket.close()
 
 
