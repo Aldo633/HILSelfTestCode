@@ -20,6 +20,10 @@ def FormatCommand(Command_String):
     Command=Command_With_termination.encode()
     return Command
 
+def FormatChannelString(Channel_Number):
+    Channel_String="(@"+str(Channel_Number)+")"
+    return Channel_String
+
 def KS_N6752A_Configure_EnableOutput(N6700_Chassis_IP, N6752A_Channel, Voltage_Setpoint, Current_Level):
     r"""This function configures the N6752A module to requested voltage and maximum current and enables the output.
 
@@ -35,25 +39,30 @@ def KS_N6752A_Configure_EnableOutput(N6700_Chassis_IP, N6752A_Channel, Voltage_S
     try:    
         # Connect to the instrument 
         PS_KS_N6700_Socket.connect((N6700_Chassis_IP, 5025))
-      
+
+        #*IDN?
+        # PS_KS_N6700_Socket.send(FormatCommand("*IDN?"))
+        # IDN_Answer=PS_KS_N6700_Socket.recv(256)
+
         #Configure Output voltage
-        PS_KS_N6700_Socket.send(FormatCommand("VOLT "+str(Voltage_Setpoint)+", @"+str(N6752A_Channel)))
+        PS_KS_N6700_Socket.send(FormatCommand("VOLT "+str(Voltage_Setpoint)+", "+FormatChannelString(N6752A_Channel)))
         #Set overvoltage level
-        PS_KS_N6700_Socket.send(FormatCommand("VOLT:PROT:LEV "+str(Voltage_Setpoint*1.1)+", @"+str(N6752A_Channel)))
+        PS_KS_N6700_Socket.send(FormatCommand("VOLT:PROT:LEV "+str(Voltage_Setpoint*1.1)+", "+FormatChannelString(N6752A_Channel)))
         #Set current level
-        PS_KS_N6700_Socket.send(FormatCommand("CURR "+str(Current_Level)+", @"+str(N6752A_Channel)))
+        PS_KS_N6700_Socket.send(FormatCommand("CURR "+str(Current_Level)+", "+FormatChannelString(N6752A_Channel)))
         #Turn on over current protection
-        PS_KS_N6700_Socket.send(FormatCommand("CURR:PROT:STAT ON, @"+str(N6752A_Channel)))
+        PS_KS_N6700_Socket.send(FormatCommand("CURR:PROT:STAT ON, "+FormatChannelString(N6752A_Channel)))
         #Turn the output ON
-        PS_KS_N6700_Socket.send(FormatCommand("OUTP ON, @"+str(N6752A_Channel)))
+        PS_KS_N6700_Socket.send(FormatCommand("OUTP ON, "+FormatChannelString(N6752A_Channel)))
         #Wait for previous command to complete
         PS_KS_N6700_Socket.send(FormatCommand("*OPC?"))
         #time.sleep(2)
         OPC_Answer=PS_KS_N6700_Socket.recv(256)
         if OPC_Answer:
             #Measure the voltage
-            PS_KS_N6700_Socket.send(FormatCommand("MEAS:VOLT? @"+str(N6752A_Channel))) 
+            PS_KS_N6700_Socket.send(FormatCommand("MEAS:VOLT? "+FormatChannelString(N6752A_Channel))) 
             Measurement=PS_KS_N6700_Socket.recv(256)
+            # Measurement=0.2
             if Measurement:
                 MyTestResult.Test_Numeric_Results[0]=float(Measurement)
             else:
