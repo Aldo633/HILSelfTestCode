@@ -29,7 +29,7 @@ from PXIe_4322_Operations import PXIe_4322_Operations
 from PXIe_4136_Operations import PXIe_4136_Operations
 
 #gRPC Server
-ServerIP="10.0.72.6"
+ServerIP="192.168.0.51"
 ServerPort = 31763
 gRPC_channel=None
 gRPC_ServerMachine_UserName = 'admin'
@@ -38,7 +38,9 @@ gRPC_ServerMachine_Password = ''
 
 #SLSC Chassis
 #SLSC_Chassis_Name = "SLSC_XXXXXXXX"
-SLSC_Chassis_Name = "SLSC-12001-0310592E"
+#SLSC_Chassis_Name = "SLSC-12001-032A1EC1" #System2
+SLSC_Chassis_Name = "SLSC-12001-032B49E9" #System1
+
 
 #FPGA RMIO
 RMIO_Bitfile_Path = "//home//admin//FPGA_Bitfiles//PXIe7846R_SelfTest.lvbitx"
@@ -58,7 +60,7 @@ PXIe_4322_Device = "PXI1Slot7"
 PXIe_4303_Device = "PXI1Slot14"
 
 #Keysight PowerSupply
-N6700_Chassis_IP="10.0.72.8" 
+N6700_Chassis_IP="192.168.0.30" 
 N6752A_Channel_First=1
 N6752A_Channel_Second=2
 
@@ -73,8 +75,8 @@ DCPowerChannels = "0"
 #Ethernet Adpters
 USB_Adapter_Vendor_ID="0930"
 USB_Adaper_Product_ID="1400"
-USB_Adapters_Machine_IP="192.168.2.34"
-USB_Adapters_Machine_UserName="Admin"
+USB_Adapters_Machine_IP="192.168.0.50"
+USB_Adapters_Machine_UserName="Teslalaps"
 USB_Adapters_Machine_UserPassword=""
 MAP_SN_MAC_ADDRESS_File_Path = os.path.join(CWD,'NICs_MAC_SN_Map.txt')
 Simulate_USBEth_Adapters=True
@@ -136,13 +138,13 @@ else:
     SelfTest_CF.Display_Debug_Info('PXIe-4322 Test Module: completed.')
 
     #****************************************************  DC Power  *************************************************
-    SelfTest_CF.Display_Debug_Info('PXIe-4136_1 Test Module: started.')
-    SelfTest_CF.My_Modules_Results.append(PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName_1, DCPower_Init_Options, DCPowerChannels, N6700_Chassis_IP, N6752A_Channel_First))
-    SelfTest_CF.Display_Debug_Info('PXIe-4136_1 Test Module: completed.')
+    # SelfTest_CF.Display_Debug_Info('PXIe-4136_1 Test Module: started.')
+    # SelfTest_CF.My_Modules_Results.append(PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName_1, DCPower_Init_Options, DCPowerChannels, N6700_Chassis_IP, N6752A_Channel_First))
+    # SelfTest_CF.Display_Debug_Info('PXIe-4136_1 Test Module: completed.')
 
-    SelfTest_CF.Display_Debug_Info('PXIe-4136_2 Test Module: started.')
-    SelfTest_CF.My_Modules_Results.append(PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName_2, DCPower_Init_Options, DCPowerChannels, N6700_Chassis_IP, N6752A_Channel_Second))
-    SelfTest_CF.Display_Debug_Info('PXIe-4136_2 Test Module: completed.')
+    # SelfTest_CF.Display_Debug_Info('PXIe-4136_2 Test Module: started.')
+    # SelfTest_CF.My_Modules_Results.append(PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName_2, DCPower_Init_Options, DCPowerChannels, N6700_Chassis_IP, N6752A_Channel_Second))
+    # SelfTest_CF.Display_Debug_Info('PXIe-4136_2 Test Module: completed.')
         
     
     #*******************************************  Close gRPC Channel ********************************************

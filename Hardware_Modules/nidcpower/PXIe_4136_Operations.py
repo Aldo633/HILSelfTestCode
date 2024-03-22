@@ -9,7 +9,7 @@ vi_nidmm=None
 dmm_Status=None
 average=None
 
-Voltage_Setpoint=0.2
+Voltage_Setpoint=10
 Current_Level=0.05
 
 PS_KS_N6700=None
@@ -81,8 +81,8 @@ def PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName, DCPower_Init_Option
     SESSION_NAME = "NI-DCPower-Session"
 
     # Parameters
-    VOLTAGE_LEVEL = 10.0
-    VOLTAGE_LEVEL_RANGE = 15.0
+    VOLTAGE_LEVEL = 9.0
+    VOLTAGE_LEVEL_RANGE = 10.0
     CURRENT_LIMIT=0.00000001
     CURRENT_LIMIT_RANGE=0.0
     SOURCE_DELAY_SEC=0.1
@@ -142,14 +142,28 @@ def PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName, DCPower_Init_Option
         )
         check_for_error(vi, configure_output_function.status)
 
-        # Configure voltage level.
-        configure_voltage_level = nidcpower_client.ConfigureVoltageLevel(
-            nidcpower_types.ConfigureVoltageLevelRequest(
+        # Configure voltage limit.
+        configure_voltage_limit = nidcpower_client.ConfigureVoltageLimit(
+            nidcpower_types.ConfigureVoltageLimitRequest(
                 vi=vi,
-                level=VOLTAGE_LEVEL,
+                channel_name="0",
+                limit=VOLTAGE_LEVEL_RANGE,
             )
         )
-        check_for_error(vi, configure_voltage_level.status)
+        check_for_error(vi, configure_voltage_limit.status)
+
+        # # Configure voltage limit range.
+        # configure_voltage_limit_range = nidcpower_client.ConfigureVoltageLimitRange(
+        #     nidcpower_types.ConfigureVoltageLimitRangeRequest(
+        #         vi=vi,
+        #         channel_name="0",
+        #         limit=VOLTAGE_LEVEL_RANGE,
+        #     )
+        # )
+        # check_for_error(vi, configure_voltage_limit.status)
+
+  
+  
 
         # Configure current limit.
         configure_current_limit = nidcpower_client.ConfigureCurrentLimit(
@@ -162,15 +176,15 @@ def PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName, DCPower_Init_Option
         )
         check_for_error(vi, configure_current_limit.status)
 
-        # Configure voltage level range.
-        configure_voltage_level_range = nidcpower_client.ConfigureVoltageLevelRange(
-            nidcpower_types.ConfigureVoltageLevelRangeRequest(
-                vi=vi,
-                channel_name=DCPowerChannels,
-                range=VOLTAGE_LEVEL_RANGE,
-            )
-        )
-        check_for_error(vi, configure_voltage_level_range.status)
+        # # Configure voltage level range.
+        # configure_voltage_level_range = nidcpower_client.ConfigureVoltageLevelRange(
+        #     nidcpower_types.ConfigureVoltageLevelRangeRequest(
+        #         vi=vi,
+        #         channel_name=DCPowerChannels,
+        #         range=VOLTAGE_LEVEL_RANGE,
+        #     )
+        # )
+        # check_for_error(vi, configure_voltage_level_range.status)
 
         # Configure current limit range.
         configure_current_limit_range = nidcpower_client.ConfigureCurrentLimitRange(
@@ -182,16 +196,16 @@ def PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName, DCPower_Init_Option
         )
         check_for_error(vi, configure_current_limit_range.status)
 
-        # Configure Source Delay
-        set_source_delay = nidcpower_client.SetAttributeViReal64(
-            nidcpower_types.SetAttributeViReal64Request(
-                vi=vi,
-                channel_name=DCPowerChannels,
-                attribute_id=nidcpower_types.NiDCPowerAttribute.NIDCPOWER_ATTRIBUTE_SOURCE_DELAY,
-                attribute_value_raw=SOURCE_DELAY_SEC,
-            )
-        )
-        check_for_error(vi, set_source_delay.status)
+        # #Configure Source Delay
+        # set_source_delay = nidcpower_client.SetAttributeViReal64(
+        #     nidcpower_types.SetAttributeViReal64Request(
+        #         vi=vi,
+        #         channel_name=DCPowerChannels,
+        #         attribute_id=nidcpower_types.NiDCPowerAttribute.NIDCPOWER_ATTRIBUTE_SOURCE_DELAY,
+        #         attribute_value_raw=SOURCE_DELAY_SEC,
+        #     )
+        # )
+        # check_for_error(vi, set_source_delay.status)
 
         #Configures and Enables Keysight
         MyTestResult,PS_KS_N6700=KS_N6752A_Configure_EnableOutput(N6700_Chassis_IP, N6752A_Channel, Voltage_Setpoint, Current_Level)
@@ -203,6 +217,7 @@ def PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName, DCPower_Init_Option
             initiate_response = nidcpower_client.Initiate(
                 nidcpower_types.InitiateRequest(
                     vi=vi,
+
                 )
             )
             check_for_error(vi, initiate_response.status)

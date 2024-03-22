@@ -7,11 +7,11 @@ FPGA_Main_ControlBool_Stop = 0x18012
 
 FPGA_Main_IndicatorArrayI64_AIs = 0x18000
 FPGA_Main_IndicatorArrayI64Size_AIs = 8
-
+#Controls
 FPGA_Main_ControlU8_Connector0Port_0 = 0x18006
 FPGA_Main_ControlU8_Connector1Port_0 = 0x1801E
 FPGA_Main_ControlU8_Connector1Port_2 = 0x18026
-
+#Indicators
 FPGA_Main_IndicatorU8_Connector0Port_1 = 0x1800A
 FPGA_Main_IndicatorU8_Connector1Port_1 = 0x18022
 FPGA_Main_IndicatorU8_Connector1Port_3 = 0x1802A

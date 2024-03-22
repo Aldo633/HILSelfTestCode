@@ -1,10 +1,10 @@
 #!/bin/bash
 
-NAME="FPGAgrpcStartupScript"
-DAEMON=/home/admin/grpc-device/cmake/build/ni_grpc_device_server
-ARGS="/home/admin/grpc-device/cmake/build/server_config.json"
+NAME="MainlineGrpcServerStartup"
+DAEMON=/home/admin/mainline-grpc-device/ni_grpc_device_server
+ARGS="/home/admin/mainline-grpc-device/server_config.json"
 USER=admin
-PIDFILE=/var/run/fpga-grpc-device-startup.pid
+PIDFILE=/var/run/mainline-grpc-device-startup.pid
 
 do_start() {
     /usr/sbin/start-stop-daemon --start --pidfile $PIDFILE \
