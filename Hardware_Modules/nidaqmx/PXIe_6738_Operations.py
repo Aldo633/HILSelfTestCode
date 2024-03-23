@@ -7,8 +7,8 @@ PXIe_4303_Channels_First_Test=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19
 # PXIe_6738_Channels_Second_Test=[30,31]
 # PXIe_4303_Channels_Second_Test=[30,31]
 
-Minimal_Value = -8.0
-Voltage_Increment = 0.50
+Minimal_Value = 0.25
+Voltage_Increment = 0.25
 
 import sys
 import os

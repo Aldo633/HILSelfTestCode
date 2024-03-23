@@ -248,9 +248,9 @@ def SLSC_Operations(SLSC_Chassis_Name):
                             break
                     else:
                         MyTestResult.Test_Numeric_Results[i]=0
-                    i=0
-                    for i in range(len(MyTestResult.Test_Numeric_Results)):
-                        if MyTestResult.Test_Numeric_Results[i]==0 and MyTestResult.Test_PassFail_Status=='Pass':
+                    j=0
+                    for j in range(len(MyTestResult.Test_Numeric_Results)):
+                        if MyTestResult.Test_Numeric_Results[j]==0 and MyTestResult.Test_PassFail_Status=='Pass':
                             MyTestResult.Test_PassFail_Status=='Pass'
                         else:
                             MyTestResult.Test_PassFail_Status=='Fail'

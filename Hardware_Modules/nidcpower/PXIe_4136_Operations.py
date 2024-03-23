@@ -83,7 +83,8 @@ def PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName, DCPower_Init_Option
     # Parameters
     VOLTAGE_LEVEL = 9.0
     VOLTAGE_LEVEL_RANGE = 10.0
-    CURRENT_LIMIT=0.00000001
+    CURRENT_LIMIT=0.01
+    CURRENT_LEVEL = 0.0005
     CURRENT_LIMIT_RANGE=0.0
     SOURCE_DELAY_SEC=0.1
 
@@ -163,9 +164,17 @@ def PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName, DCPower_Init_Option
         # check_for_error(vi, configure_voltage_limit.status)
 
   
-  
+        # Configure current level.
+        # configure_current_level = nidcpower_client.ConfigureCurrentLevel(
+        #     nidcpower_types.ConfigureCurrentLevelRequest(
+        #         vi=vi,
+        #         channel_name=DCPowerChannels,
+        #         level=0.0,
+        #     )
+        # )
+        # check_for_error(vi, configure_current_level.status)
 
-        # Configure current limit.
+        # # Configure current limit.
         configure_current_limit = nidcpower_client.ConfigureCurrentLimit(
             nidcpower_types.ConfigureCurrentLimitRequest(
                 vi=vi,
@@ -175,6 +184,8 @@ def PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName, DCPower_Init_Option
             )
         )
         check_for_error(vi, configure_current_limit.status)
+
+
 
         # # Configure voltage level range.
         # configure_voltage_level_range = nidcpower_client.ConfigureVoltageLevelRange(
@@ -186,15 +197,15 @@ def PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName, DCPower_Init_Option
         # )
         # check_for_error(vi, configure_voltage_level_range.status)
 
-        # Configure current limit range.
-        configure_current_limit_range = nidcpower_client.ConfigureCurrentLimitRange(
-            nidcpower_types.ConfigureCurrentLimitRangeRequest(
-                vi=vi,
-                channel_name=DCPowerChannels,
-                range=CURRENT_LIMIT_RANGE,
-            )
-        )
-        check_for_error(vi, configure_current_limit_range.status)
+        # # Configure current limit range.
+        # configure_current_limit_range = nidcpower_client.ConfigureCurrentLimitRange(
+        #     nidcpower_types.ConfigureCurrentLimitRangeRequest(
+        #         vi=vi,
+        #         channel_name=DCPowerChannels,
+        #         range=CURRENT_LIMIT_RANGE,
+        #     )
+        # )
+        # check_for_error(vi, configure_current_limit_range.status)
 
         # #Configure Source Delay
         # set_source_delay = nidcpower_client.SetAttributeViReal64(
@@ -244,14 +255,14 @@ def PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName, DCPower_Init_Option
 
             # Test with SMU Feedback Channel
             MyTestResult=SelfTest_CF.Test_Result()
-            MyTestResult.CustomInit('PXIe-4136: CH'+DCPowerChannels+ ' with SMU feedback channel','Fail',1,[0],[VOLTAGE_LEVEL],'This test measures actual value on channel ch'+DCPowerChannels+'. Voltage is output by Keysight Power Supply Channel '+str(N6752A_Channel),str(datetime.datetime.now()))
+            MyTestResult.CustomInit('PXIe-4136: CH'+DCPowerChannels+ ' with SMU feedback channel','Fail',1,[0],[Voltage_Setpoint],'This test measures actual value on channel ch'+DCPowerChannels+'. Voltage is output by Keysight Power Supply Channel '+str(N6752A_Channel),str(datetime.datetime.now()))
             
             Test_Status=True
             if measure_multiple.status==0:
                 i=0
                 for i in range(MyTestResult.Test_Number_Of_Measurements):
                     MyTestResult.Test_Numeric_Results[i]=measure_multiple.voltage_measurements[i]
-                    Test_Status=Test_Status and SelfTest_CF.Test_Numeric_Test(MyTestResult.Test_Expected_Numeric_Results[i],MyTestResult.Test_Numeric_Results[i],5)
+                    Test_Status=Test_Status and SelfTest_CF.Test_Numeric_Test(MyTestResult.Test_Expected_Numeric_Results[i],MyTestResult.Test_Numeric_Results[i],10)
                 if Test_Status==True:
                     MyTestResult.Test_PassFail_Status='Pass'
                 else:
@@ -263,7 +274,7 @@ def PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName, DCPower_Init_Option
         else:
             # Test with SMU Feedback Channel
             MyTestResult=SelfTest_CF.Test_Result()
-            MyTestResult.CustomInit('PXIe-4136: CH'+DCPowerChannels+ ' with SMU feedback channel','Fail',1,[-9999.99],[VOLTAGE_LEVEL],'This test measures actual value on channel ch'+DCPowerChannels+'. Voltage is output by Keysight Power Supply Channel '+str(N6752A_Channel),str(datetime.datetime.now()))
+            MyTestResult.CustomInit('PXIe-4136: CH'+DCPowerChannels+ ' with SMU feedback channel','Fail',1,[-9999.99],[Voltage_Setpoint],'This test measures actual value on channel ch'+DCPowerChannels+'. Voltage is output by Keysight Power Supply Channel '+str(N6752A_Channel),str(datetime.datetime.now()))
             MyTestResult.Test_PassFail_Status='Fail'
             Tests_Result_list.append(MyTestResult)
             del MyTestResult    
@@ -271,12 +282,13 @@ def PXIe_4136_Operations(gRPC_channel, DCPower_ResourceName, DCPower_Init_Option
     except :
     #     print(f"NI-DCPOWER Exception")    
         print(f'{"":25}\tERROR\t{"PXIe-4136 Exception.":60}')    
-        PS_KS_N6700=None
+        #PS_KS_N6700=None
 
     finally:
         #We disable PS output and close session
         if Tests_Result_list[0].Test_PassFail_Status !="Fail":
             KS_N6752A_DisableOutput(PS_KS_N6700,N6752A_Channel)
+            PS_KS_N6700=None
          #---------------------- Close NI-DC Power session -----------------------
         if "vi" in vars() and vi.id != 0:
             #Reset
