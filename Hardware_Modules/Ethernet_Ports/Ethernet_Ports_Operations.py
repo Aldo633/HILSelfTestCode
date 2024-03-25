@@ -409,7 +409,7 @@ def Ethernet_Ports_Operations(USB_Adapters_Machine_IP, USB_Adapters_Machine_User
                 if error==0: MyTestResult.Test_Numeric_Results.append('Ping successful')
                 else: MyTestResult.Test_Numeric_Results.append('Ping failed')
                 MyTestResult.Test_Expected_Numeric_Results.append('Ping successful')
-                Test_Status_Ping=Test_Status_Ping and (error=='Ping successful')
+                Test_Status_Ping=Test_Status_Ping and (MyTestResult.Test_Expected_Numeric_Results[i]=='Ping successful')
                 
             if Test_Status_Ping==True:
                 MyTestResult.Test_PassFail_Status='Pass'
