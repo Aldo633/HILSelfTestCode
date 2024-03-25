@@ -77,8 +77,7 @@ DCPowerChannels = "0"
 USB_Adapter_Vendor_ID="2965"
 USB_Adaper_Product_ID="6032"
 USB_Adapters_Machine_IP="192.168.0.50"
-USB_Adapters_Machine_UserName="teslalaps"
-USB_Adapters_Machine_UserPassword="ySdsD1kuFvhZ41WM"
+
 MAP_SN_MAC_ADDRESS_File_Path = os.path.join(CWD,'NICs_MAC_SN_Map.cfg')
 Simulate_USBEth_Adapters=False
 IP_Ping_Source="192.168.2.84"
