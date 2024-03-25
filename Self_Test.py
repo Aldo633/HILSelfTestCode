@@ -40,6 +40,7 @@ gRPC_ServerMachine_Password = ''
 #SLSC_Chassis_Name = "SLSC_XXXXXXXX"
 #SLSC_Chassis_Name = "SLSC-12001-032A1EC1" #System2
 SLSC_Chassis_Name = "SLSC-12001-032B49E9" #System1
+SLSC_IP_Address = "192.168.0.53" #Static IP Address for the chassis
 
 
 #FPGA RMIO
@@ -115,7 +116,7 @@ else:
 
     #****************************************************** SLSC ****************************************************
     # SelfTest_CF.Display_Debug_Info('SLSC-12202 Test Module: started.')
-    # SelfTest_CF.My_Modules_Results.append(SLSC_Operations(SLSC_Chassis_Name))
+    # SelfTest_CF.My_Modules_Results.append(SLSC_Operations(SLSC_Chassis_Name,SLSC_IP_Address))
     # SelfTest_CF.Display_Debug_Info('SLSC-12202 Test Module: completed.')
 
     #**************************************************** FPGA RMIO *************************************************

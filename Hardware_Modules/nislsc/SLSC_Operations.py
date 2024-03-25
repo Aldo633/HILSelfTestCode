@@ -20,13 +20,14 @@ init_request = {"id": "Self_Test","jsonrpc": "2.0","method": "initializeSession"
 close_request = {"id": "Self_Test","jsonrpc": "2.0","method": "closeSession","params":{"session_id": ""}}
 get_modules_request = {"id": "Self_Test","jsonrpc": "2.0","method": "getProperty","params":{"session_id": "","devices":[""],"property": "Dev.Modules"}}
 get_property_request = {"id": "Self_Test","jsonrpc": "2.0","method": "getProperty","params":{"session_id": "","devices":[""],"property": ""}}
+get_property_request_channel = {"id": "Self_Test","jsonrpc": "2.0","method": "getProperty","params":{"session_id": "","physical_channels":[""],"property": ""}}
 execute_reserveDevices_request = {"id": "Self_Test","jsonrpc": "2.0","method": "reserveDevices","params":{"session_id": "","devices":[""],"access":"ReadWrite","reservation_group":"self_test"}}
 set_property_request =  {"id": "Self_Test","jsonrpc": "2.0","method": "setProperty","params":{"session_id": "","devices":[""],"physical_channels":[""],"property": "","value":None}}
 set_LineDirection_property_request =  {"id": "Self_Test","jsonrpc": "2.0","method": "setProperty","params":{"session_id": "","physical_channels":[""],"property": "NI.Line.Direction","value":None}}
 execute_unreserveDevices_request = {"id": "Self_Test","jsonrpc": "2.0","method": "unreserveDevices","params":{"session_id": "","devices":[""]}}
 set_property_commit_request = {"id": "Self_Test","jsonrpc": "2.0","method": "commitProperties","params":{"session_id": "","devices":[""]}}
-set_property_Vsup_Select =  {"id": "Self_Test","jsonrpc": "2.0","method": "setProperty","params":{"session_id": "","physical_channels":[""],"property": "NI.VsupSelect","value":1}}
-set_property_enable_5v_range =  {"id": "Self_Test","jsonrpc": "2.0","method": "setProperty","params":{"session_id": "","physical_channels":[""],"property": "NI.RangeEnable5V","value":True}}
+set_property_VsupSelect =  {"id": "Self_Test","jsonrpc": "2.0","method": "setProperty","params":{"session_id": "","physical_channels":[""],"property": "NI.VsupSelect","value":1}}
+set_property_ni_enable5Vrange =  {"id": "Self_Test","jsonrpc": "2.0","method": "setProperty","params":{"session_id": "","physical_channels":[""],"property": "NI.RangeEnable5V","value":True}}
 set_property_InputThreshold_5V =  {"id": "Self_Test","jsonrpc": "2.0","method": "setProperty","params":{"session_id": "","physical_channels":[""],"property": "NI.InputThreshold5V","value":2.5}}
 update_channel_configuration = {"id": "Self_Test","jsonrpc": "2.0","method": "executeCommand","params":{"session_id": "","devices":[""],"command":"NI.UpdateChannelConfiguration"}}
 
@@ -124,11 +125,11 @@ def error_handling_WithResultValue(response_dict):
         Status=response_dict['error']['code']  
     return Status, resultsValue
 
-def SLSC_Operations(SLSC_Chassis_Name):
+def SLSC_Operations(SLSC_Chassis_Name, SLSC_IP_Address):
     """This function interacts with the SLSC chassis: it enumerates modules present in chassis, their location and their type. Then the function configures SLSC-12202 Ports for the Self-Test part (DIOs of RMIO and DIO boards)."""
 
     # Initialize Parameters
-    slsc_url = f'http://{SLSC_Chassis_Name}/nislsc/call'
+    slsc_url = f'http://{SLSC_IP_Address}/nislsc/call'
     session_id = ""
 
     SLSC_Devices=[]
@@ -161,6 +162,8 @@ def SLSC_Operations(SLSC_Chassis_Name):
             Tests_Result_list.append(MyTestResult)
             del MyTestResult
 
+            
+
             #-------------------- Configure SLSC-12202 Modules ---------------------
                                
             if len(SLSC_12202_Devices)>0:
@@ -171,189 +174,183 @@ def SLSC_Operations(SLSC_Chassis_Name):
                 #Reserve Devices
                 execute_reserveDevices_request["params"]["session_id"] = session_id
                 execute_reserveDevices_request["params"]["devices"] = SLSC_12202_Devices
-
                 response = http.request("POST", slsc_url, body=json.dumps(execute_reserveDevices_request))
                 response_dict = json.loads(response.data)
-
                 if 'error' in response_dict:
-                    print(f'Error while reserving module: code: {response_dict["error"]["code"]}, Message: {response_dict["error"]["message"]}.')
-                    MyTestResult.Test_PassFail_Status='Fail'
-                    MyTestResult.Test_Numeric_Results[0]=response_dict["error"]["code"]
-                
+                    if 'code' in response_dict["error"]:
+                        print(f'Error while reserving module: code: {response_dict["error"]["code"]}, Message: {response_dict["error"]["message"]}.')
+                        MyTestResult.Test_PassFail_Status='Fail'
+                        MyTestResult.Test_Numeric_Results[0]=response_dict["error"]["code"]
+                    
                 Tests_Result_list.append(MyTestResult)
                 del MyTestResult
 
-                #-------- For all SLSC-12202 Modules: set Ports 0 and 2 as Output, set Ports 1 and 3 as Input
-                MyTestResult=SelfTest_CF.Test_Result()
-                MyTestResult.CustomInit('SLSC-12202 Ports Configuration','Pass',6,[-1,-1,-1,-1,-1,-1],[0,0,0,0,0,0],'The test configures SLSC-12202 Ports for the Self-Test part (DIOs of RMIO and DIO boards).',str(datetime.datetime.now()))                
-            
-                i=0
-                set_LineDirection_property_request["params"]["session_id"] = session_id
-                for i in range(len(SLSC_12202_Devices)): 
+                
 
-                    #Measurements.append(0)
-                    #---------- "/port0/line0:7" ---------- 
+                for i in range(len(SLSC_12202_Devices)):
+                    #Check Vsup0 status
+                    MyTestResult=SelfTest_CF.Test_Result()
+                    MyTestResult.CustomInit('Checking Vsup0-Mod '+str(i),'Pass',1,[],[0],'Checks the presence of a voltage within operating range in Vsup0',str(datetime.datetime.now()))
+
+                    get_property_request["params"]["session_id"] = session_id
+                    get_property_request["params"]["devices"] = [SLSC_12202_Devices[i]]
+                    get_property_request["params"]["property"] = "NI.StatusVsup_0PowerGood"
+                    response = http.request("POST", slsc_url, body=json.dumps(get_property_request))
+                    response_dict = json.loads(response.data)
+                    if 'error' in response_dict:
+                        if 'code' in response_dict["error"]:
+                            print(f'Error while reserving module: code: {response_dict["error"]["code"]}, Message: {response_dict["error"]["message"]}.')
+                            MyTestResult.Test_PassFail_Status='Fail'
+                            MyTestResult.Test_Numeric_Results[0]=response_dict["error"]["code"]
+                    else:
+                        Vsup0Status = response_dict["result"]["value"][0]
+                        if Vsup0Status:
+                            MyTestResult.Test_PassFail_Status='Passed'
+                        else:
+                            MyTestResult.Test_PassFail_Status='Failed'
+                            
+                    
+                    Tests_Result_list.append(MyTestResult)
+                    del MyTestResult
+                    
+
+
+                    #Check Vsup1 status
+                    get_property_request["params"]["session_id"] = session_id
+                    get_property_request["params"]["devices"] = [SLSC_12202_Devices[i]]
+                    get_property_request["params"]["property"] = "NI.StatusVsup_1PowerGood"
+                    response = http.request("POST", slsc_url, body=json.dumps(get_property_request))
+                    response_dict = json.loads(response.data)
+                    if 'error' in response_dict:
+                        if 'code' in response_dict["error"]:
+                            print(f'Error while reserving module: code: {response_dict["error"]["code"]}, Message: {response_dict["error"]["message"]}.')
+                            MyTestResult.Test_PassFail_Status='Fail'
+                            MyTestResult.Test_Numeric_Results[0]=response_dict["error"]["code"]
+                    else:
+                        Vsup1Status = response_dict["result"]["value"][0]
+                        if Vsup1Status:
+                            MyTestResult.Test_PassFail_Status='Passed'
+                        else:
+                            MyTestResult.Test_PassFail_Status='Failed'
+                    
+                    Tests_Result_list.append(MyTestResult)
+                    del MyTestResult
+                    
+
+                    #Enable test mode
+                    
+                    set_property_request["params"]["session_id"] = session_id
+                    set_property_request["params"]["devices"] = [SLSC_12202_Devices[i]]
+                    set_property_request["params"]["property"] = "NI.TestModeEnable"
+                    set_property_request["params"]["value"]=[False]
+                    response = http.request("POST", slsc_url, body=json.dumps(set_property_request))
+                    response_dict = json.loads(response.data)
+
+                    set_property_request["params"]["session_id"] = session_id
+                    set_property_request["params"]["devices"] = [SLSC_12202_Devices[i]]
+                    set_property_request["params"]["property"] = "NI.TestModeValue"
+                    set_property_request["params"]["value"]=[0]
+                    response = http.request("POST", slsc_url, body=json.dumps(set_property_request))
+                    response_dict = json.loads(response.data)
+                    
+                    #Setting direction Loopback 0-1
+                    set_LineDirection_property_request["params"]["session_id"] = session_id    
                     set_LineDirection_property_request["params"]["physical_channels"]=[SLSC_12202_Devices[i]+"/port0/line0:7"]
-                    set_LineDirection_property_request["params"]["value"]=[Output_Source, Output_Source, Output_Source, Output_Source, Output_Source, Output_Source, Output_Source, Output_Source]
+                    set_LineDirection_property_request["params"]["value"]=[Output_Source,Output_Source,Output_Source,Output_Source,Output_Source,Output_Source,Output_Source,Output_Source,]
+                    response = http.request("POST", slsc_url, body=json.dumps(set_LineDirection_property_request))
+                    response_dict = json.loads(response.data)
 
+                    set_LineDirection_property_request["params"]["physical_channels"]=[SLSC_12202_Devices[i]+"/port1/line0:7"]
+                    set_LineDirection_property_request["params"]["value"]=[Input_Sink,Input_Sink,Input_Sink,Input_Sink,Input_Sink,Input_Sink,Input_Sink,Input_Sink,]
                     response = http.request("POST", slsc_url, body=json.dumps(set_LineDirection_property_request))
                     response_dict = json.loads(response.data)
 
                     if 'error' in response_dict:
                         if 'code' in response_dict["error"]:
                             print(f'Error while setting Lines Direction for "/port0/line0:7" : error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
-                            MyTestResult.Test_Numeric_Results[i]=response_dict["error"]["code"]
-                            break
-                    else:
-                        MyTestResult.Test_Numeric_Results[i]=0
-                    #---------- "/port1/line0:7" ---------- 
-                    set_LineDirection_property_request["params"]["physical_channels"]=[SLSC_12202_Devices[i]+"/port1/line0:7"]
-                    set_LineDirection_property_request["params"]["value"]=[Input_Sink, Input_Sink, Input_Sink, Input_Sink, Input_Sink, Input_Sink, Input_Sink, Input_Sink]
-
-                    response = http.request("POST", slsc_url, body=json.dumps(set_LineDirection_property_request))
-                    response_dict = json.loads(response.data)
-
-                    if 'error' in response_dict:
-                        if 'code' in response_dict["error"]:
-                            print(f'Error while setting Lines Direction for "/port1/line0:7": error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
-                            MyTestResult.Test_Numeric_Results[i]=response_dict["error"]["code"]
-                            break
-                    else:
-                        MyTestResult.Test_Numeric_Results[i]=0                    
-                    #---------- "/port2/line0:7" ---------- 
+                    
+                    #Setting direction Loopback 2-3
+                    set_LineDirection_property_request["params"]["session_id"] = session_id    
                     set_LineDirection_property_request["params"]["physical_channels"]=[SLSC_12202_Devices[i]+"/port2/line0:7"]
-                    set_LineDirection_property_request["params"]["value"]=[Output_Source, Output_Source, Output_Source, Output_Source, Output_Source, Output_Source, Output_Source, Output_Source]
-
+                    set_LineDirection_property_request["params"]["value"]=[Output_Source,Output_Source,Output_Source,Output_Source,Output_Source,Output_Source,Output_Source,Output_Source,]
                     response = http.request("POST", slsc_url, body=json.dumps(set_LineDirection_property_request))
                     response_dict = json.loads(response.data)
 
-                    if 'error' in response_dict:
-                        if 'code' in response_dict["error"]:
-                            print(f'Error while setting Lines Direction for "/port2/line0:7": error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
-                            MyTestResult.Test_Numeric_Results[i]=response_dict["error"]["code"]
-                            break
-                    else:
-                        MyTestResult.Test_Numeric_Results[i]=0                        
-                    #---------- "/port3/line0:7" ---------- 
                     set_LineDirection_property_request["params"]["physical_channels"]=[SLSC_12202_Devices[i]+"/port3/line0:7"]
-                    set_LineDirection_property_request["params"]["value"]=[Input_Sink, Input_Sink, Input_Sink, Input_Sink, Input_Sink, Input_Sink, Input_Sink, Input_Sink]
-
+                    set_LineDirection_property_request["params"]["value"]=[Input_Sink,Input_Sink,Input_Sink,Input_Sink,Input_Sink,Input_Sink,Input_Sink,Input_Sink,]
                     response = http.request("POST", slsc_url, body=json.dumps(set_LineDirection_property_request))
                     response_dict = json.loads(response.data)
 
                     if 'error' in response_dict:
                         if 'code' in response_dict["error"]:
-                            print(f'Error while setting Lines Direction for"/port3/line0:7": error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
-                            MyTestResult.Test_Numeric_Results[i]=response_dict["error"]["code"]
-                            break
-                    else:
-                        MyTestResult.Test_Numeric_Results[i]=0
-                    j=0
-                    for j in range(len(MyTestResult.Test_Numeric_Results)):
-                        if MyTestResult.Test_Numeric_Results[j]==0 and MyTestResult.Test_PassFail_Status=='Pass':
-                            MyTestResult.Test_PassFail_Status=='Pass'
-                        else:
-                            MyTestResult.Test_PassFail_Status=='Fail'
-                            #break
-                    else:
-                        MyTestResult.Test_Numeric_Results=[-1,-1,-1,-1,-1,-1]
-                        MyTestResult.Test_PassFail_Status='Fail'
+                            print(f'Error while setting Lines Direction for "/port0/line0:7" : error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
                     
-                    Tests_Result_list.append(MyTestResult)
-                    del MyTestResult
-                    
+                #Enabling Test Mode
+                
+                
                     #---------- Select Vsup0 for Bank 0----------
-                    set_property_Vsup_Select["params"]["physical_channels"]=[SLSC_12202_Devices[i]+"/bank0"]
+                    set_property_VsupSelect["params"]["session_id"] = session_id
+                    set_property_VsupSelect["params"]["physical_channels"]=[SLSC_12202_Devices[i]+"/bank0"]
 
-                    response = http.request("POST", slsc_url, body=json.dumps(set_property_Vsup_Select))
+                    response = http.request("POST", slsc_url, body=json.dumps(set_property_VsupSelect))
                     response_dict = json.loads(response.data)
 
                     if 'error' in response_dict:
                         if 'code' in response_dict["error"]:
                             print(f'Error while setting Vsup for Bank 0" : error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
-                            MyTestResult.Test_Numeric_Results[i]=response_dict["error"]["code"]
-                            break
-                    else:
-                        MyTestResult.Test_Numeric_Results[i]=0
 
-                    #---------- Select Vsup0 for Bank 1----------
-                    set_property_Vsup_Select["params"]["session_id"] = session_id
-                    set_property_Vsup_Select["params"]["physical_channels"]=[SLSC_12202_Devices[i]+"/bank1"]
-
-                    response = http.request("POST", slsc_url, body=json.dumps(set_property_Vsup_Select))
+                    #---------- Select Threshold for Bank 0----------
+                    set_property_ni_enable5Vrange["params"]["session_id"] = session_id
+                    set_property_ni_enable5Vrange["params"]["physical_channels"]=[SLSC_12202_Devices[i]+"/bank0"]
+                    response = http.request("POST", slsc_url, body=json.dumps(set_property_ni_enable5Vrange))
                     response_dict = json.loads(response.data)
-
-                    if 'error' in response_dict:
-                        if 'code' in response_dict["error"]:
-                            print(f'Error while setting Vsup for Bank 1" : error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
-                            MyTestResult.Test_Numeric_Results[i]=response_dict["error"]["code"]
-                            break
-                    else:
-                        MyTestResult.Test_Numeric_Results[i]=0
-
-                    #---------- Configure Input Range to 5V Range for Bank 0 ---------- 
-                    set_property_enable_5v_range["params"]["session_id"] = session_id
-                    set_property_enable_5v_range["params"]["physical_channels"]=[SLSC_12202_Devices[i]+"/bank0"]
-
-                    response = http.request("POST", slsc_url, body=json.dumps(set_property_enable_5v_range))
-                    response_dict = json.loads(response.data)
-
-                    if 'error' in response_dict:
-                        if 'code' in response_dict["error"]:
-                            print(f'Error while setting Input Threshold for Bank 0" : error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
-                            MyTestResult.Test_Numeric_Results[i]=response_dict["error"]["code"]
-                            break
-                    else:
-                        MyTestResult.Test_Numeric_Results[i]=0
 
                     
-                    #---------- Configure Input Range to 5V Range for Bank 1 ---------- 
-                    set_property_enable_5v_range["params"]["session_id"] = session_id
-                    set_property_enable_5v_range["params"]["physical_channels"]=[SLSC_12202_Devices[i]+"/bank1"]
-
-                    response = http.request("POST", slsc_url, body=json.dumps(set_property_enable_5v_range))
-                    response_dict = json.loads(response.data)
-
-                    if 'error' in response_dict:
-                        if 'code' in response_dict["error"]:
-                            print(f'Error while setting Input Threshold for Bank 0" : error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
-                            MyTestResult.Test_Numeric_Results[i]=response_dict["error"]["code"]
-                            break
-                    else:
-                        MyTestResult.Test_Numeric_Results[i]=0
-
-
-                    
-                    #---------- Configure Input Threshold to 2.5V for Bank 0 ---------- 
                     set_property_InputThreshold_5V["params"]["session_id"] = session_id
                     set_property_InputThreshold_5V["params"]["physical_channels"]=[SLSC_12202_Devices[i]+"/bank0"]
 
                     response = http.request("POST", slsc_url, body=json.dumps(set_property_InputThreshold_5V))
                     response_dict = json.loads(response.data)
-
                     if 'error' in response_dict:
                         if 'code' in response_dict["error"]:
                             print(f'Error while setting Input Threshold for Bank 0" : error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
-                            MyTestResult.Test_Numeric_Results[i]=response_dict["error"]["code"]
-                            break
-                    else:
-                        MyTestResult.Test_Numeric_Results[i]=0
+                    
+                    #---------- Select Vsup0 for Bank 1----------
+                    set_property_VsupSelect["params"]["session_id"] = session_id
+                    set_property_VsupSelect["params"]["physical_channels"]=[SLSC_12202_Devices[i]+"/bank1"]
 
-                    #---------- Configure Input Threshold to 2.5V for Bank 1 ---------- 
-                    set_property_InputThreshold_5V["params"]["physical_channels"]=[SLSC_12202_Devices[i]+"/bank1"]
-
-                    response = http.request("POST", slsc_url, body=json.dumps(set_property_InputThreshold_5V))
+                    response = http.request("POST", slsc_url, body=json.dumps(set_property_VsupSelect))
                     response_dict = json.loads(response.data)
 
                     if 'error' in response_dict:
                         if 'code' in response_dict["error"]:
-                            print(f'Error while setting Input Threshold for Bank 1" : error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
-                            MyTestResult.Test_Numeric_Results[i]=response_dict["error"]["code"]
-                            break
-                    else:
-                        MyTestResult.Test_Numeric_Results[i]=0    
+                            print(f'Error while setting Vsup for Bank 0" : error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
 
-                    #------------ Apply channel configuration ------------
+                    #---------- Select Threshold for Bank 1----------
+                    set_property_ni_enable5Vrange["params"]["session_id"] = session_id
+                    set_property_ni_enable5Vrange["params"]["physical_channels"]=[SLSC_12202_Devices[i]+"/bank1"]
+                    response = http.request("POST", slsc_url, body=json.dumps(set_property_ni_enable5Vrange))
+                    response_dict = json.loads(response.data)
+
+                    
+                    set_property_InputThreshold_5V["params"]["session_id"] = session_id
+                    set_property_InputThreshold_5V["params"]["physical_channels"]=[SLSC_12202_Devices[i]+"/bank1"]
+
+                    response = http.request("POST", slsc_url, body=json.dumps(set_property_InputThreshold_5V))
+                    response_dict = json.loads(response.data)
+                    if 'error' in response_dict:
+                        if 'code' in response_dict["error"]:
+                            print(f'Error while setting Input Threshold for Bank 0" : error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
+
+
+                    #Getting lineindex
+                    get_property_request_channel["params"]["session_id"] = session_id
+                    get_property_request_channel["params"]["physical_channels"] = [SLSC_Devices[i]+"/port0/line0"]
+                    get_property_request_channel["params"]["property"] = "NI.Line.Index"
+                    response = http.request("POST", slsc_url, body=json.dumps(get_property_request_channel))
+                    response_dict = json.loads(response.data)
+                    LineIndexport0_0 = response_dict["result"]["value"][0]
+                    #Update Channel Configuration
                     update_channel_configuration["params"]["session_id"] = session_id
                     update_channel_configuration ["params"]["devices"] = SLSC_12202_Devices[i]   
 
@@ -362,10 +359,7 @@ def SLSC_Operations(SLSC_Chassis_Name):
 
                     if 'error' in response_dict:
                         if 'code' in response_dict["error"]:
-                            print(f'Error while Updating channel configuration: error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')                    
-                            break
-                    else:
-                        MyTestResult.Test_Numeric_Results[i]=0 
+                            print(f'Error while applying update channel config: error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
                     
 
                 #--------------- Commit ------------------------
