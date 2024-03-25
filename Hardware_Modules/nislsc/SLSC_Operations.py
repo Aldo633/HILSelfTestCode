@@ -169,7 +169,7 @@ def SLSC_Operations(SLSC_Chassis_Name, SLSC_IP_Address):
             if len(SLSC_12202_Devices)>0:
                 #-------------------- SLSC-12202 Modules Reservation ---------------------
                 MyTestResult=SelfTest_CF.Test_Result()
-                MyTestResult.CustomInit('SLSC-12202 Reservation','Pass',1,[],[0],'The test reserves the detected SLSC-12202 Modules.',str(datetime.datetime.now()))
+                MyTestResult.CustomInit('SLSC-12202 Reservation','Pass',1,[0],[0],'The test reserves the detected SLSC-12202 Modules.',str(datetime.datetime.now()))
                 
                 #Reserve Devices
                 execute_reserveDevices_request["params"]["session_id"] = session_id
@@ -181,6 +181,8 @@ def SLSC_Operations(SLSC_Chassis_Name, SLSC_IP_Address):
                         print(f'Error while reserving module: code: {response_dict["error"]["code"]}, Message: {response_dict["error"]["message"]}.')
                         MyTestResult.Test_PassFail_Status='Fail'
                         MyTestResult.Test_Numeric_Results[0]=response_dict["error"]["code"]
+                else:
+                    MyTestResult.Test_Numeric_Results[0]=0
                     
                 Tests_Result_list.append(MyTestResult)
                 del MyTestResult
@@ -190,7 +192,7 @@ def SLSC_Operations(SLSC_Chassis_Name, SLSC_IP_Address):
                 for i in range(len(SLSC_12202_Devices)):
                     #Check Vsup0 status
                     MyTestResult=SelfTest_CF.Test_Result()
-                    MyTestResult.CustomInit('Checking Vsup0-Mod '+str(i),'Pass',1,[],[0],'Checks the presence of a voltage within operating range in Vsup0',str(datetime.datetime.now()))
+                    MyTestResult.CustomInit('Checking Vsup0-Mod '+str(i),'Pass',1,[0],[0],'Checks the presence of a voltage within operating range in Vsup0',str(datetime.datetime.now()))
 
                     get_property_request["params"]["session_id"] = session_id
                     get_property_request["params"]["devices"] = [SLSC_12202_Devices[i]]
@@ -216,6 +218,9 @@ def SLSC_Operations(SLSC_Chassis_Name, SLSC_IP_Address):
 
 
                     #Check Vsup1 status
+                    MyTestResult=SelfTest_CF.Test_Result()
+                    MyTestResult.CustomInit('Checking Vsup1-Mod '+str(i),'Pass',1,[0],[0],'Checks the presence of a voltage within operating range in Vsup0',str(datetime.datetime.now()))
+
                     get_property_request["params"]["session_id"] = session_id
                     get_property_request["params"]["devices"] = [SLSC_12202_Devices[i]]
                     get_property_request["params"]["property"] = "NI.StatusVsup_1PowerGood"
@@ -343,13 +348,13 @@ def SLSC_Operations(SLSC_Chassis_Name, SLSC_IP_Address):
                             print(f'Error while setting Input Threshold for Bank 0" : error code:{response_dict["error"]["code"]}, Message:{response_dict["error"]["message"]}.')
 
 
-                    #Getting lineindex
-                    get_property_request_channel["params"]["session_id"] = session_id
-                    get_property_request_channel["params"]["physical_channels"] = [SLSC_Devices[i]+"/port0/line0"]
-                    get_property_request_channel["params"]["property"] = "NI.Line.Index"
-                    response = http.request("POST", slsc_url, body=json.dumps(get_property_request_channel))
-                    response_dict = json.loads(response.data)
-                    LineIndexport0_0 = response_dict["result"]["value"][0]
+                    #Get lineindex
+                    # get_property_request_channel["params"]["session_id"] = session_id
+                    # get_property_request_channel["params"]["physical_channels"] = [SLSC_Devices[i]+"/port0/line0"]
+                    # get_property_request_channel["params"]["property"] = "NI.Line.Index"
+                    # response = http.request("POST", slsc_url, body=json.dumps(get_property_request_channel))
+                    # response_dict = json.loads(response.data)
+                    # LineIndexport0_0 = response_dict["result"]["value"][0]
                     #Update Channel Configuration
                     update_channel_configuration["params"]["session_id"] = session_id
                     update_channel_configuration ["params"]["devices"] = SLSC_12202_Devices[i]   

@@ -12,6 +12,9 @@ import subprocess
 
 Measurements=[]
 average=None
+USBFolder = os.getcwd()+'/Hardware_Modules/Ethernet_Ports'
+NO_OF_USB_PORTS = 1
+
 
 def extract_string_between_variables(input_string:str, start_variable:str, end_variable:str):
     try:
@@ -31,9 +34,9 @@ def substring_after(s, delim):
     return s.partition(delim)[2]
 
 class Commands:
-    Count_USBEth_Adapters_Command=('./Count_USB_Devices.sh')
-    Get_USBEth_Adapters_Information_Command=('./Get_USB_Devices_Information.sh')
-    Ping_Command=('./Ping_Interface.sh')
+    Count_USBEth_Adapters_Command=(USBFolder+'/Count_USB_Devices.sh')
+    Get_USBEth_Adapters_Information_Command=(USBFolder+'/Get_USB_Devices_Information.sh')
+    Ping_Command=(USBFolder+'/Ping_Interface.sh')
 
     def __init__(self, retry_time=0):
         self.retry_time = retry_time
@@ -68,7 +71,8 @@ class Commands:
         # Count Number of USB to Ethernet Adapters.
         NB_Adapters=0
         SelfTest_CF.Display_Debug_Info('[Ethernet Ports] Count Number of USB->Ethernet Adapters')
-        Count_Command=self.Count_USBEth_Adapters_Command+" "+str(Vendor_ID)+" "+str(Product_ID)
+        #Count_Command=self.Count_USBEth_Adapters_Command+" "+str(Vendor_ID)+" "+str(Product_ID)
+        Count_Command=self.Count_USBEth_Adapters_Command
         ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(Count_Command)
         exit_code = ssh_stdout.channel.recv_exit_status() # handles async exit error 
         if exit_code==0:
@@ -108,7 +112,8 @@ class Commands:
 
         # Get USB to Ethernet Adapters Information.
         SelfTest_CF.Display_Debug_Info('[Ethernet Ports] Get USB->Ethernet Adapters Information')
-        Get_Information_Command=self.Get_USBEth_Adapters_Information_Command+" "+str(Vendor_ID)+" "+str(Product_ID)
+        #Get_Information_Command=self.Get_USBEth_Adapters_Information_Command+" "+str(Vendor_ID)+" "+str(Product_ID)
+        Get_Information_Command=self.Get_USBEth_Adapters_Information_Command
         ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(Get_Information_Command)
         exit_code = ssh_stdout.channel.recv_exit_status() # handles async exit error 
         if exit_code==0:
@@ -187,7 +192,7 @@ class Commands:
             ssh.close()
         else:
             EthName="eth99"
-            IP_Address="192.168.2.34"
+            IP_Address="192.168.0.50"
         return EthName, IP_Address   
 
     def Ping_Interface(self, Source_IP, Destimation_IP, NB_Replies):
@@ -284,12 +289,12 @@ def Ethernet_Ports_Operations(USB_Adapters_Machine_IP, USB_Adapters_Machine_User
 
 
         MyTestResult=SelfTest_CF.Test_Result()
-        MyTestResult.CustomInit('Count USB Ethernet Adapters','Fail',1,[],[],'This test counts number of USB Ethernet Adapters.',str(datetime.datetime.now()))
+        MyTestResult.CustomInit('Count USB Ethernet Adapters','Fail',1,[0],[NO_OF_USB_PORTS],'This test counts number of USB Ethernet Adapters.',str(datetime.datetime.now()))
       
-        MyTestResult.Test_Numeric_Results.append(str(NB_Adapters_Detected))
-        MyTestResult.Test_Expected_Numeric_Results.append('')
+        MyTestResult.Test_Numeric_Results[0]=int(NB_Adapters_Detected)
+        # MyTestResult.Test_Expected_Numeric_Results.append(NO_OF_USB_PORTS)
 
-        if NB_Adapters_Detected!=MyTestResult.Test_Expected_Numeric_Results[0]:
+        if MyTestResult.Test_Numeric_Results[0]!=MyTestResult.Test_Expected_Numeric_Results[0]:
             MyTestResult.Test_PassFail_Status='Fail'
         else:
             MyTestResult.Test_PassFail_Status='Pass'

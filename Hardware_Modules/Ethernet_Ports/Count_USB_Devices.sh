@@ -7,8 +7,8 @@ then
     Product_ID=$2
 else
     #Ensure it matches the USB->Ethernet adapter.
-    Vendor_ID=0930
-    Product_ID=1400
+    Vendor_ID=0b95
+    Product_ID=1790
 fi
 
 #echo "Vendor_ID used: $Vendor_ID, Product_ID used: $Product_ID"

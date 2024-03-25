@@ -74,13 +74,13 @@ DCPowerChannels = "0"
 
 
 #Ethernet Adpters
-USB_Adapter_Vendor_ID="0930"
-USB_Adaper_Product_ID="1400"
+USB_Adapter_Vendor_ID="2965"
+USB_Adaper_Product_ID="6032"
 USB_Adapters_Machine_IP="192.168.0.50"
-USB_Adapters_Machine_UserName="Teslalaps"
-USB_Adapters_Machine_UserPassword=""
-MAP_SN_MAC_ADDRESS_File_Path = os.path.join(CWD,'NICs_MAC_SN_Map.txt')
-Simulate_USBEth_Adapters=True
+USB_Adapters_Machine_UserName="teslalaps"
+USB_Adapters_Machine_UserPassword="ySdsD1kuFvhZ41WM"
+MAP_SN_MAC_ADDRESS_File_Path = os.path.join(CWD,'NICs_MAC_SN_Map.cfg')
+Simulate_USBEth_Adapters=False
 IP_Ping_Source="192.168.2.84"
 
 
@@ -89,16 +89,17 @@ SelfTest_CF.My_Modules_Results=[]
 
 #**********************************************  Start gRPC Server ********************************************
 SelfTest_CF.Display_Debug_Info('START gRPC Server')
-SSH_gRPC_Server.Start_gRPC_Server(ServerIP, gRPC_ServerMachine_UserName, gRPC_ServerMachine_Password)
+#SSH_gRPC_Server.Start_gRPC_Server(ServerIP, gRPC_ServerMachine_UserName, gRPC_ServerMachine_Password)
 
 
 SelfTest_CF.Display_Debug_Info('SELF-TEST START')
 #*******************************************  Instance gRPC Channel ********************************************
 try:
-    gRPC_channel = grpc.insecure_channel(f"{ServerIP}:{ServerPort}")
-    grpc.channel_ready_future(gRPC_channel).result(timeout=3.0)
+    # gRPC_channel = grpc.insecure_channel(f"{ServerIP}:{ServerPort}")
+    # grpc.channel_ready_future(gRPC_channel).result(timeout=3.0)
+    placeholder=True
 except grpc.FutureTimeoutError:
-    SelfTest_CF.Display_Debug_Info('Error, tinmeout: unable to connecto to gRPC Server.')
+    SelfTest_CF.Display_Debug_Info('Error, Timeout: unable to connect to gRPC Server.')
 else:
     #************************************************** Synthetic Data *********************************************
     # SelfTest_CF.Display_Debug_Info('Syn 0 Test Module: started.')
@@ -110,14 +111,14 @@ else:
     # SelfTest_CF.Display_Debug_Info('Syn 1 Test Module: completed.')
 
     #************************************************* Ethernet Ports ***********************************************
-    #SelfTest_CF.Display_Debug_Info('Ethernet Ports Test Module: started.')
-    #SelfTest_CF.My_Modules_Results.append(Ethernet_Ports_Operations(USB_Adapters_Machine_IP, USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, USB_Adapter_Vendor_ID, USB_Adaper_Product_ID, MAP_SN_MAC_ADDRESS_File_Path, IP_Ping_Source, Simulate_USBEth_Adapters))
-    #SelfTest_CF.Display_Debug_Info('Ethernet Ports Test Module: completed.')
+    SelfTest_CF.Display_Debug_Info('Ethernet Ports Test Module: started.')
+    SelfTest_CF.My_Modules_Results.append(Ethernet_Ports_Operations(USB_Adapters_Machine_IP, USB_Adapters_Machine_UserName, USB_Adapters_Machine_UserPassword, USB_Adapter_Vendor_ID, USB_Adaper_Product_ID, MAP_SN_MAC_ADDRESS_File_Path, IP_Ping_Source, Simulate_USBEth_Adapters))
+    SelfTest_CF.Display_Debug_Info('Ethernet Ports Test Module: completed.')
 
     #****************************************************** SLSC ****************************************************
-    # SelfTest_CF.Display_Debug_Info('SLSC-12202 Test Module: started.')
-    # SelfTest_CF.My_Modules_Results.append(SLSC_Operations(SLSC_Chassis_Name,SLSC_IP_Address))
-    # SelfTest_CF.Display_Debug_Info('SLSC-12202 Test Module: completed.')
+    SelfTest_CF.Display_Debug_Info('SLSC-12202 Test Module: started.')
+    SelfTest_CF.My_Modules_Results.append(SLSC_Operations(SLSC_Chassis_Name,SLSC_IP_Address))
+    SelfTest_CF.Display_Debug_Info('SLSC-12202 Test Module: completed.')
 
     #**************************************************** FPGA RMIO *************************************************
     SelfTest_CF.Display_Debug_Info('FPGA RMIO Test Module: started.')
