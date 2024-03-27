@@ -1,5 +1,4 @@
 #Python part
-*.txt
 *.json
 __pycache__/*.pyc
 gRPC_Client/__pycache__/*.pyc
@@ -10,6 +9,8 @@ Hardware_Modules/nislsc/__pycache__/*.*
 Hardware_Modules/nidcpower/__pycache__/*.*
 Hardware_Modules/KS_N6752A/__pycache__/*.*
 Hardware_Modules/Ethernet_Ports/__pycache__/*.*
-
+Environment/.venv
+Reports/*.txt
+Reports/*.json
 
 

@@ -8,8 +8,8 @@ CWD=os.getcwd()
 #print(f"CWD:{str(CWD)}")
 
 #File path to serialized JSON results
-JSON_TEST_FILE = os.path.join(CWD,'Tests_data.json')
-REPORT_FILE_PATH=os.path.join(CWD,'Report.txt')
+JSON_TEST_FILE = os.path.join(CWD,'Reports','Tests_data.json')
+REPORT_FILE_PATH=os.path.join(CWD,'Reports','Report.txt')
 
 sys.path.append(os.path.join(CWD,'gRPC_Client','python_sourcefile'))
 sys.path.append(os.path.join(CWD,'Hardware_Modules','nislsc'))

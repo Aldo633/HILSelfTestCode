@@ -49,6 +49,11 @@ This part is optional as soon as user uses the Py script ```Self_Test.py``` beca
 ```export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/grpc-sideband ```.
 ## Server Launch
 Enter command ```./ni_grpc_device_server``` 
+
+## Client installation requirements
+Requirements are on ```Environment/requirements.txt``` . They can be installed with ```$pip install -r requirements.txt```  on the Environment folder.
+
+
 ## Execution Script
 User can use available script ```StartServer.sh```, copy it *to target*. It loads *Grpc-sideband.so* and starts server. Command to execute on target:
 ```console
