@@ -50,8 +50,7 @@ This part is optional as soon as user uses the Py script ```Self_Test.py``` beca
 ## Server Launch
 Enter command ```./ni_grpc_device_server``` 
 
-## Client installation requirements
-Requirements are on ```Environment/requirements.txt``` . They can be installed with ```$pip install -r requirements.txt```  on the Environment folder.
+
 
 
 ## Execution Script
@@ -68,6 +67,10 @@ User can stop gRPC Device Server on NI-PXI RT-Target using keys combination ```C
 
 
 # Self-Test execution
+
+
+## Self-Test dependencies
+Requirements are on ```Environment/requirements.txt``` . They can be installed with ```$pip install -r requirements.txt```  on the Environment folder.
 
 The self-test code already includes some sections to start and stop the gRPC server automatically via commands sent via SSH (using [paramiko](https://pypi.org/project/paramiko/) python library). User doesn't have to follow manual steps from previous paragraph.
 User just needs to start the Py script (in *Python* sub-folder):
